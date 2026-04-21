@@ -5,7 +5,10 @@ import * as bcrypt from 'bcrypt';
 
 import { User } from './user.entity';
 import { Role } from '../roles/role.entity';
-
+import { randomBytes } from 'crypto';
+import { ConflictException } from '@nestjs/common';
+import { UserStatus } from './userstatus.entity';
+import { EmailService } from '../mail/mail.service';
 @Injectable()
 export class UsersService {
   constructor(
@@ -14,6 +17,13 @@ export class UsersService {
 
     @InjectRepository(Role)
     private roleRepo: Repository<Role>,
+    
+    @InjectRepository(UserStatus)
+    private statusRepo: Repository<UserStatus>,
+
+      private emailService: EmailService,
+
+
   ) {}
 
   findByEmail(email: string) {
@@ -23,20 +33,89 @@ export class UsersService {
     });
   }
 
-  async createAdmin(dto: any) {
-    const role = await this.roleRepo.findOne({
-      where: { name: 'admin' },
-    });
+      private generateStrongPassword(length = 12): string {
+      const chars =
+        'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+[]{}<>?';
 
-    const hashed = await bcrypt.hash(dto.password, 10);
+      let password = '';
+      const bytes = randomBytes(length);
 
-    const admin = this.userRepo.create({
-      ...dto,
-      password: hashed,
-      role_id: role?.id,
-      status: true,
-    });
+      for (let i = 0; i < length; i++) {
+        password += chars[bytes[i] % chars.length];
+      }
 
-    return this.userRepo.save(admin);
+      return password;
+    }
+
+ 
+ 
+    
+   async createAdmin(dto: any) {
+  const existing = await this.userRepo.findOne({
+    where: { email: dto.email },
+  });
+
+  if (existing) {
+    throw new ConflictException('Email already exists');
   }
+
+  const role = await this.roleRepo.findOne({
+    where: { name: 'admin' },
+  });
+
+  const status = await this.statusRepo.findOne({
+    where: { code: 'en_attend' },
+  });
+
+  const password = this.generateStrongPassword(14);
+  const hashed = await bcrypt.hash(password, 10);
+
+  const token = randomBytes(32).toString('hex');
+
+  const admin = this.userRepo.create({
+    ...dto,
+    password: hashed,
+    role_id: role?.id,
+    status: status,
+    activation_token: token,
+  });
+
+  const saved = await this.userRepo.save(admin);
+
+  const user = Array.isArray(saved) ? saved[0] : saved;
+
+  await this.emailService.sendAdminCreationEmail(
+    user.email,
+    password,
+    token,
+  );
+
+  return {
+    message: 'Admin created & email sent',
+    email: user.email,
+  };
+}
+
+  async getListAdmin() {
+    return this.userRepo.find({
+      relations: ['role', 'status'], 
+      where: {
+        role: {
+          name: 'admin', 
+        },
+      },
+      select: {
+        id: true,
+        email: true,
+        first_name: true,
+        last_name: true,
+        status: true,
+        role: {
+          id: true,
+          name: true,
+        },
+      },
+    });
+  }
+  
 }

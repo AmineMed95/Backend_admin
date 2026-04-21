@@ -9,6 +9,7 @@ import {
 } from 'typeorm';
 
 import { Role } from '../roles/role.entity';
+import { UserStatus } from './userstatus.entity';
 
 @Entity('users')
 export class User {
@@ -33,20 +34,25 @@ export class User {
   @Column({ nullable: true })
   organization_name: string;
 
-  @Column({ default: true })
-  status: boolean;
+  @ManyToOne(() => UserStatus)
+  @JoinColumn({ name: 'status_id' })
+  status: UserStatus;
 
-  // 🔥 RELATION TO ROLE TABLE
-  @ManyToOne(() => Role)
+  @Column({ type: 'varchar', nullable: true })
+  activation_token: string | null;
+
+  // 👇 RELATION (IMPORTANT FIX)
+  @ManyToOne(() => Role, { eager: false })
   @JoinColumn({ name: 'role_id' })
   role: Role;
 
+// 👇 KEEP THIS ONLY IF YOU WANT DIRECT ACCESS
   @Column()
   role_id: number;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ type: 'timestamp' })
   created_at: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ type: 'timestamp' })
   updated_at: Date;
 }
