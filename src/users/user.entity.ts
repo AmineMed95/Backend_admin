@@ -41,12 +41,10 @@ export class User {
   @Column({ type: 'varchar', nullable: true })
   activation_token: string | null;
 
-  // 👇 RELATION (IMPORTANT FIX)
   @ManyToOne(() => Role, { eager: false })
   @JoinColumn({ name: 'role_id' })
   role: Role;
 
-// 👇 KEEP THIS ONLY IF YOU WANT DIRECT ACCESS
   @Column()
   role_id: number;
 

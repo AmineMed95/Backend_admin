@@ -24,6 +24,25 @@ export class InitNewSchema1776630750748 implements MigrationInterface {
             CONSTRAINT "UQ_97672ac88f789774dd47f7c8be3" UNIQUE ("email"),
             CONSTRAINT "PK_a3ffb1c0c8416b9fc6f907b7433" PRIMARY KEY ("id")
         )`);
+
+                    await queryRunner.query(`CREATE TABLE "clients" (
+            "id" SERIAL NOT NULL,
+            "first_name" character varying NOT NULL,
+            "last_name" character varying NOT NULL,
+            "email" character varying NOT NULL,
+            "phone" character varying,
+            "access_code" character varying NOT NULL,
+            "is_code_used" boolean NOT NULL DEFAULT false,
+            "created_by" integer NOT NULL,
+            "created_at" TIMESTAMP NOT NULL DEFAULT now(),
+            "updated_at" TIMESTAMP NOT NULL DEFAULT now(),
+            CONSTRAINT "UQ_clients_email" UNIQUE ("email"),
+            CONSTRAINT "UQ_clients_access_code" UNIQUE ("access_code"),
+            CONSTRAINT "PK_clients" PRIMARY KEY ("id")
+            )`);
+
+            await queryRunner.query(`ALTER TABLE "clients" ADD CONSTRAINT "FK_clients_created_by" 
+            FOREIGN KEY ("created_by") REFERENCES "users"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`);
         await queryRunner.query(`ALTER TABLE "users" ADD CONSTRAINT "FK_9d295cb2f8df33c080e23acfb8f" FOREIGN KEY ("status_id") REFERENCES "user_statuses"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`);
         await queryRunner.query(`ALTER TABLE "users" ADD CONSTRAINT "FK_a2cecd1a3531c0b041e29ba46e1" FOREIGN KEY ("role_id") REFERENCES "roles"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`);
     }
