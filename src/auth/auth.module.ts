@@ -9,11 +9,13 @@ import { AuthService } from './auth.service';
 import { UsersModule } from '../users/users.module';
 import { User } from '../users/user.entity';         
 import { UserStatus } from '../users/userstatus.entity'; 
+import { MailModule } from '../mail/mail.module'; 
 
 @Module({
   imports: [
     ConfigModule,
     UsersModule,
+    MailModule,
     TypeOrmModule.forFeature([User, UserStatus]), 
     JwtModule.registerAsync({
       imports: [ConfigModule],

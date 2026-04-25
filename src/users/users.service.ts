@@ -30,6 +30,16 @@ export class UsersService {
     return this.userRepo.findOne({
       where: { email },
       relations: ['role'],
+      select: {
+        id: true,
+        email: true,
+        password: true,
+        activation_token: true,  // 👈 add this
+        role: {
+          id: true,
+          name: true,
+        },
+      },
     });
   }
 
@@ -54,6 +64,14 @@ export class UsersService {
   const existing = await this.userRepo.findOne({
     where: { email: dto.email },
   });
+
+   const phoneExists = await this.userRepo.findOne({
+    where: { phone: dto.phone },
+  });
+
+   if (phoneExists) {
+      throw new ConflictException('Phone already exists');
+    }
 
   if (existing) {
     throw new ConflictException('Email already exists');
