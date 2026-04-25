@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
@@ -117,5 +117,78 @@ export class UsersService {
       },
     });
   }
-  
+
+async updateInactiveAdmin(id: number, dto: any) {
+  const admin = await this.userRepo.findOne({
+    where: { id },
+    relations: ['role', 'status'],
+  });
+
+  if (!admin) {
+    throw new NotFoundException('Admin not found');
+  }
+
+  if (admin.role?.name !== 'admin') {
+    throw new ForbiddenException('User is not an admin');
+  }
+
+  if (admin.status?.code === 'actif') {
+    throw new ForbiddenException('Cannot update an active admin');
+  }
+
+  // 👇 Check if email already used by another user
+  if (dto.email && dto.email !== admin.email) {
+    const emailExists = await this.userRepo.findOne({
+      where: { email: dto.email },
+    });
+
+    if (emailExists) {
+      throw new ConflictException('Email already exists');
+    }
+  }
+
+  // 👇 Check if phone already used by another user
+  if (dto.phone && dto.phone !== admin.phone) {
+    const phoneExists = await this.userRepo.findOne({
+      where: { phone: dto.phone },
+    });
+
+    if (phoneExists) {
+      throw new ConflictException('Phone already exists');
+    }
+  }
+
+  Object.assign(admin, dto);
+  const updated = await this.userRepo.save(admin);
+
+  return {
+    message: 'Admin updated successfully',
+    data: updated,
+  };
+}
+
+async deleteInactiveAdmin(id: number) {
+  const admin = await this.userRepo.findOne({
+    where: { id },
+    relations: ['role', 'status'],
+  });
+
+  if (!admin) {
+    throw new NotFoundException('Admin not found');
+  }
+
+  if (admin.role?.name !== 'admin') {
+    throw new ForbiddenException('User is not an admin');
+  }
+
+  if (admin.activation_token === null ) {
+    throw new ForbiddenException('Cannot delete an active admin');
+  }
+
+  await this.userRepo.remove(admin);
+
+  return {
+    message: 'Admin deleted successfully',
+  };
+}
 }
