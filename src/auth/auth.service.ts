@@ -38,6 +38,10 @@ export class AuthService {
     };
   }
 
+  async logout(user: any) {
+
+    return { message: 'Logged out successfully' };
+  }
   async activateAccount(token: string) {
   const user = await this.userRepo.findOne({
     where: { activation_token: token },

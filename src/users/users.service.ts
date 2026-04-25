@@ -20,8 +20,8 @@ export class UsersService {
     
     @InjectRepository(UserStatus)
     private statusRepo: Repository<UserStatus>,
-
-      private emailService: EmailService,
+    
+    private emailService: EmailService,
 
 
   ) {}
@@ -110,6 +110,9 @@ export class UsersService {
         first_name: true,
         last_name: true,
         status: true,
+        organization_name: true,
+        created_at: true,
+        phone: true,
         role: {
           id: true,
           name: true,
