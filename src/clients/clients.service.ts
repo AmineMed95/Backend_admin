@@ -91,6 +91,7 @@ export class ClientsService {
         access_code: true,
         is_code_used: true,
         created_at: true,
+        created_by: true,
       },
     });
   }

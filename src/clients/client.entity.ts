@@ -9,6 +9,8 @@ import {
 } from 'typeorm';
 import { User } from '../users/user.entity';
 import { Role } from 'src/roles/role.entity';
+import { OneToOne } from 'typeorm';
+import { KycRecord } from '../kyc-record/kyc-record.entity';
 
 @Entity('clients')
 export class Client {
@@ -53,4 +55,7 @@ export class Client {
 
   @UpdateDateColumn({ type: 'timestamp' })
   updated_at: Date;
+
+  @OneToOne(() => KycRecord, (kyc) => kyc.client)
+  kycRecord: KycRecord;
 }

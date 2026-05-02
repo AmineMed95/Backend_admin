@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { MailerService } from '@nestjs-modules/mailer';
-import * as twilio from 'twilio';
+import { Twilio } from 'twilio';
 
 @Injectable()
 export class EmailService {
-  private twilioClient: twilio.Twilio;
+  private twilioClient: Twilio;
 
   constructor(private readonly mailerService: MailerService) {
-    this.twilioClient = twilio.default(
+    this.twilioClient = new Twilio(
       process.env.TWILIO_ACCOUNT_SID,
       process.env.TWILIO_AUTH_TOKEN,
     );

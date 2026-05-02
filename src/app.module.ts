@@ -9,6 +9,7 @@ import { UsersModule } from './users/users.module';
 import { RolesModule } from './roles/roles.module';
 import { MailModule } from './mail/mail.module';
 import { ClientsModule } from './clients/clients.module';
+import { KycRecordModule } from './kyc-record/kyc-record.module';
 
 @Module({
   imports: [
@@ -33,7 +34,8 @@ import { ClientsModule } from './clients/clients.module';
     UsersModule,
     RolesModule,
     MailModule,
-    ClientsModule
+    ClientsModule,
+    KycRecordModule
   ],
   controllers: [AppController],
   providers: [AppService],

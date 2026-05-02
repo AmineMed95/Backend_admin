@@ -40,6 +40,25 @@ export class InitNewSchema1776630750748 implements MigrationInterface {
             CONSTRAINT "UQ_clients_access_code" UNIQUE ("access_code"),
             CONSTRAINT "PK_clients" PRIMARY KEY ("id")
             )`);
+                    await queryRunner.query(`CREATE TABLE "kyc_records" (
+                "id" SERIAL NOT NULL,
+                "status" character varying NOT NULL DEFAULT 'en_attente',
+                "facial_matching_score" float,
+                "cin_data" jsonb,
+                "created_at" TIMESTAMP NOT NULL DEFAULT now(),
+                "client_id" integer NOT NULL,
+                CONSTRAINT "CHK_kyc_status" CHECK (
+                    "status" IN ('valide', 'en_attente', 'non_valide')
+                ),
+                CONSTRAINT "UQ_kyc_records_client_id" UNIQUE ("client_id"),
+                CONSTRAINT "PK_kyc_records" PRIMARY KEY ("id")
+            )`);
+
+            await queryRunner.query(`ALTER TABLE "kyc_records" 
+                ADD CONSTRAINT "FK_kyc_records_client_id" 
+                FOREIGN KEY ("client_id") REFERENCES "clients"("id") 
+                ON DELETE CASCADE ON UPDATE NO ACTION
+            `);
 
             await queryRunner.query(`ALTER TABLE "clients" ADD CONSTRAINT "FK_clients_created_by" 
             FOREIGN KEY ("created_by") REFERENCES "users"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`);
