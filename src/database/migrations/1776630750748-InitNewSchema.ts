@@ -25,7 +25,7 @@ export class InitNewSchema1776630750748 implements MigrationInterface {
             CONSTRAINT "PK_a3ffb1c0c8416b9fc6f907b7433" PRIMARY KEY ("id")
         )`);
 
-                    await queryRunner.query(`CREATE TABLE "clients" (
+        await queryRunner.query(`CREATE TABLE "clients" (
             "id" SERIAL NOT NULL,
             "first_name" character varying NOT NULL,
             "last_name" character varying NOT NULL,
@@ -33,34 +33,36 @@ export class InitNewSchema1776630750748 implements MigrationInterface {
             "phone" character varying,
             "access_code" character varying NOT NULL,
             "is_code_used" boolean NOT NULL DEFAULT false,
+            "code_expires_at" TIMESTAMP NULL,
             "created_by" integer NOT NULL,
             "created_at" TIMESTAMP NOT NULL DEFAULT now(),
             "updated_at" TIMESTAMP NOT NULL DEFAULT now(),
             CONSTRAINT "UQ_clients_email" UNIQUE ("email"),
             CONSTRAINT "UQ_clients_access_code" UNIQUE ("access_code"),
             CONSTRAINT "PK_clients" PRIMARY KEY ("id")
-            )`);
-                    await queryRunner.query(`CREATE TABLE "kyc_records" (
-                "id" SERIAL NOT NULL,
-                "status" character varying NOT NULL DEFAULT 'en_attente',
-                "facial_matching_score" float,
-                "cin_data" jsonb,
-                "created_at" TIMESTAMP NOT NULL DEFAULT now(),
-                "client_id" integer NOT NULL,
-                CONSTRAINT "CHK_kyc_status" CHECK (
-                    "status" IN ('valide', 'en_attente', 'non_valide')
-                ),
-                CONSTRAINT "UQ_kyc_records_client_id" UNIQUE ("client_id"),
-                CONSTRAINT "PK_kyc_records" PRIMARY KEY ("id")
-            )`);
+        )`);
 
-            await queryRunner.query(`ALTER TABLE "kyc_records" 
-                ADD CONSTRAINT "FK_kyc_records_client_id" 
-                FOREIGN KEY ("client_id") REFERENCES "clients"("id") 
-                ON DELETE CASCADE ON UPDATE NO ACTION
-            `);
+        await queryRunner.query(`CREATE TABLE "kyc_records" (
+            "id" SERIAL NOT NULL,
+            "status" character varying NOT NULL DEFAULT 'en_attente',
+            "facial_matching_score" float,
+            "cin_data" jsonb,
+            "created_at" TIMESTAMP NOT NULL DEFAULT now(),
+            "client_id" integer NOT NULL,
+            CONSTRAINT "CHK_kyc_status" CHECK (
+                "status" IN ('valide', 'en_attente', 'non_valide')
+            ),
+            CONSTRAINT "UQ_kyc_records_client_id" UNIQUE ("client_id"),
+            CONSTRAINT "PK_kyc_records" PRIMARY KEY ("id")
+        )`);
 
-            await queryRunner.query(`ALTER TABLE "clients" ADD CONSTRAINT "FK_clients_created_by" 
+        await queryRunner.query(`ALTER TABLE "kyc_records" 
+            ADD CONSTRAINT "FK_kyc_records_client_id" 
+            FOREIGN KEY ("client_id") REFERENCES "clients"("id") 
+            ON DELETE CASCADE ON UPDATE NO ACTION
+        `);
+
+        await queryRunner.query(`ALTER TABLE "clients" ADD CONSTRAINT "FK_clients_created_by" 
             FOREIGN KEY ("created_by") REFERENCES "users"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`);
         await queryRunner.query(`ALTER TABLE "users" ADD CONSTRAINT "FK_9d295cb2f8df33c080e23acfb8f" FOREIGN KEY ("status_id") REFERENCES "user_statuses"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`);
         await queryRunner.query(`ALTER TABLE "users" ADD CONSTRAINT "FK_a2cecd1a3531c0b041e29ba46e1" FOREIGN KEY ("role_id") REFERENCES "roles"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`);
@@ -69,6 +71,10 @@ export class InitNewSchema1776630750748 implements MigrationInterface {
     public async down(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`ALTER TABLE "users" DROP CONSTRAINT "FK_a2cecd1a3531c0b041e29ba46e1"`);
         await queryRunner.query(`ALTER TABLE "users" DROP CONSTRAINT "FK_9d295cb2f8df33c080e23acfb8f"`);
+        await queryRunner.query(`ALTER TABLE "clients" DROP CONSTRAINT "FK_clients_created_by"`);
+        await queryRunner.query(`ALTER TABLE "kyc_records" DROP CONSTRAINT "FK_kyc_records_client_id"`);
+        await queryRunner.query(`DROP TABLE "kyc_records"`);
+        await queryRunner.query(`DROP TABLE "clients"`);
         await queryRunner.query(`DROP TABLE "users"`);
         await queryRunner.query(`DROP TABLE "user_statuses"`);
         await queryRunner.query(`DROP TABLE "roles"`);

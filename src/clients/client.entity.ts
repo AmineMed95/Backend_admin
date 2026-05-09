@@ -34,6 +34,9 @@ export class Client {
 
   @Column({ default: false })
   is_code_used: boolean;
+  
+  @Column({ type: 'timestamp', nullable: true })
+  code_expires_at: Date;
 
   // Agent who created the client
   @ManyToOne(() => User)

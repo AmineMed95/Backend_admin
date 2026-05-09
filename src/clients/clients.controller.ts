@@ -5,6 +5,7 @@ import { ResendAccessCodeDto } from './dto/resend-access-code.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { ClientLoginDto } from './dto/client-login-dto';
 
 @Controller('clients')
 export class ClientsController {
@@ -28,5 +29,10 @@ export class ClientsController {
   @Post('resend-access-code')
   resendAccessCode(@Body() dto: ResendAccessCodeDto) {
     return this.clientsService.resendAccessCode(dto);
+  }
+
+  @Post('login')
+  loginWithAccessCode(@Body() dto: ClientLoginDto) {
+    return this.clientsService.loginWithAccessCode(dto);
   }
 }
