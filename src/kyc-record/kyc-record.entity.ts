@@ -15,7 +15,6 @@ export enum KycStatus {
   INVALID = 'non_valide',
 }
 
-
 export interface CinData {
   cin: string;
   firstName: string;
@@ -31,22 +30,30 @@ export class KycRecord {
   id: number;
 
   @OneToOne(() => Client, (client) => client.kycRecord, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'client_id' })   
+  @JoinColumn({ name: 'client_id' })
   client: Client;
 
   @Column({
-    type: 'varchar', 
+    type: 'varchar',
     enum: KycStatus,
     default: KycStatus.PENDING,
   })
   status: KycStatus;
 
-  @Column({ type: 'float', nullable: true, name: 'facial_matching_score' }) 
+  @Column({ type: 'float', nullable: true, name: 'facial_matching_score' })
   facialMatchingScore: number;
 
-  @Column({ type: 'jsonb', nullable: true, name: 'cin_data' })              
+  @Column({ type: 'jsonb', nullable: true, name: 'cin_data' })
   cinData: CinData;
 
-  @CreateDateColumn({ name: 'created_at' })                              
+  // Path or URL of the scanned CIN document image
+  @Column({ type: 'varchar', nullable: true, name: 'cin_image_url' })
+  cinImageUrl: string;
+
+  // Path or URL of the client selfie image
+  @Column({ type: 'varchar', nullable: true, name: 'selfie_image_url' })
+  selfieImageUrl: string;
+
+  @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 }

@@ -47,6 +47,8 @@ export class InitNewSchema1776630750748 implements MigrationInterface {
             "status" character varying NOT NULL DEFAULT 'en_attente',
             "facial_matching_score" float,
             "cin_data" jsonb,
+            "cin_image_url" character varying NULL,
+            "selfie_image_url" character varying NULL,
             "created_at" TIMESTAMP NOT NULL DEFAULT now(),
             "client_id" integer NOT NULL,
             CONSTRAINT "CHK_kyc_status" CHECK (
