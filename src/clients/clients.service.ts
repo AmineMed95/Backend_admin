@@ -1,8 +1,9 @@
-import { BadRequestException, ConflictException, Injectable } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Client } from './client.entity';
 import { CreateClientDto } from './dto/create-client.dto';
+import { ResendAccessCodeDto } from './dto/resend-access-code.dto';
 import { EmailService } from '../mail/mail.service';
 import { randomBytes } from 'crypto';
 
@@ -11,72 +12,134 @@ export class ClientsService {
   constructor(
     @InjectRepository(Client)
     private clientRepo: Repository<Client>,
-    private emailService: EmailService, 
+    private emailService: EmailService,
   ) {}
 
   private generateAccessCode(): string {
     return randomBytes(4).toString('hex').toUpperCase();
   }
-  
+
   async createClient(dto: CreateClientDto, agentId: number) {
-  const existing = await this.clientRepo.findOne({
-    where: { email: dto.email },
-  });
-  if (existing) {
-    throw new ConflictException('Email already exists');
+    const existing = await this.clientRepo.findOne({
+      where: { email: dto.email },
+    });
+    if (existing) {
+      throw new ConflictException('Email already exists');
+    }
+
+    if (dto.send_via === 2 && !dto.phone) {
+      throw new BadRequestException('Phone number is required for SMS sending');
+    }
+
+    let access_code = '';
+    let isUnique = false;
+    while (!isUnique) {
+      access_code = this.generateAccessCode();
+      const exists = await this.clientRepo.findOne({ where: { access_code } });
+      if (!exists) isUnique = true;
+    }
+
+    const client = this.clientRepo.create({
+      ...dto,
+      access_code,
+      created_by: agentId,
+    });
+
+    const saved = await this.clientRepo.save(client);
+
+    if (dto.send_via === 1) {
+      await this.emailService.sendClientAccessCode(
+        saved.email,
+        saved.first_name,
+        saved.access_code,
+      );
+    } else if (dto.send_via === 2) {
+      await this.emailService.sendClientAccessCodeSms(
+        saved.phone,
+        saved.first_name,
+        saved.access_code,
+      );
+    }
+
+    return {
+      message:
+        dto.send_via === 1
+          ? "Client créé et code d'accès envoyé par email"
+          : "Client créé et code d'accès envoyé par SMS",
+      data: {
+        id: saved.id,
+        first_name: saved.first_name,
+        last_name: saved.last_name,
+        email: saved.email,
+        phone: saved.phone,
+        access_code: saved.access_code,
+        send_via: dto.send_via,
+        created_at: saved.created_at,
+      },
+    };
   }
-  // Validate SMS requires phone
-  if (dto.send_via === 2 && !dto.phone) {
-    throw new BadRequestException('Phone number is required for SMS sending');
+
+  async resendAccessCode(dto: ResendAccessCodeDto) {
+    const client = await this.clientRepo.findOne({
+      where: { email: dto.email },
+    });
+
+    if (!client) {
+      throw new NotFoundException('Aucun client trouvé avec cet email');
+    }
+
+    if (client.is_code_used) {
+      throw new BadRequestException(
+        'Le code a déjà été utilisé. Le processus eKYC est déjà complété.',
+      );
+    }
+
+    if (dto.send_via === 2 && !client.phone) {
+      throw new BadRequestException(
+        'Aucun numéro de téléphone associé à ce client pour l\'envoi SMS',
+      );
+    }
+
+    let access_code = '';
+    let isUnique = false;
+    while (!isUnique) {
+      access_code = this.generateAccessCode();
+      const exists = await this.clientRepo.findOne({ where: { access_code } });
+      if (!exists) isUnique = true;
+    }
+
+    client.access_code = access_code;
+    const updated = await this.clientRepo.save(client);
+
+    if (dto.send_via === 1) {
+      await this.emailService.sendClientAccessCode(
+        updated.email,
+        updated.first_name,
+        updated.access_code,
+      );
+    } else if (dto.send_via === 2) {
+      await this.emailService.sendClientAccessCodeSms(
+        updated.phone,
+        updated.first_name,
+        updated.access_code,
+      );
+    }
+
+    return {
+      message:
+        dto.send_via === 1
+          ? 'Nouveau code d\'accès envoyé par email'
+          : 'Nouveau code d\'accès envoyé par SMS',
+      data: {
+        id: updated.id,
+        first_name: updated.first_name,
+        last_name: updated.last_name,
+        email: updated.email,
+        send_via: dto.send_via,
+        updated_at: updated.updated_at,
+      },
+    };
   }
-
-  let access_code = '';
-  let isUnique = false;
-  while (!isUnique) {
-    access_code = this.generateAccessCode();
-    const exists = await this.clientRepo.findOne({ where: { access_code } });
-    if (!exists) isUnique = true;
-  }
-
-  const client = this.clientRepo.create({
-    ...dto,
-    access_code,
-    created_by: agentId,
-  });
-
-  const saved = await this.clientRepo.save(client);
-
-  //  Send via email or SMS based on send_via
-  if (dto.send_via === 1) {
-    await this.emailService.sendClientAccessCode(
-      saved.email,
-      saved.first_name,
-      saved.access_code,
-    );
-  } else if (dto.send_via === 2) {
-    await this.emailService.sendClientAccessCodeSms(
-      saved.phone,
-      saved.first_name,
-      saved.access_code,
-    );
-  }
-
-  return {
-    message: dto.send_via === 1
-      ? 'Client créé et code d\'accès envoyé par email'
-      : 'Client créé et code d\'accès envoyé par SMS',
-    data: {
-      id: saved.id,
-      first_name: saved.first_name,
-      last_name: saved.last_name,
-      email: saved.email,
-      phone: saved.phone,
-      access_code: saved.access_code,
-      send_via: dto.send_via,
-      created_at: saved.created_at,
-    },
-  };
-}
 
   async getClients(agentId: number) {
     return this.clientRepo.find({

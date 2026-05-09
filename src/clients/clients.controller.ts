@@ -1,6 +1,7 @@
 import { Controller, Post, Body, Get, UseGuards, Req } from '@nestjs/common';
 import { ClientsService } from './clients.service';
 import { CreateClientDto } from './dto/create-client.dto';
+import { ResendAccessCodeDto } from './dto/resend-access-code.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -21,5 +22,11 @@ export class ClientsController {
   @Get('list')
   getClients(@Req() req: any) {
     return this.clientsService.getClients(req.user.userId);
+  }
+
+
+  @Post('resend-access-code')
+  resendAccessCode(@Body() dto: ResendAccessCodeDto) {
+    return this.clientsService.resendAccessCode(dto);
   }
 }
