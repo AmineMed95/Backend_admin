@@ -35,6 +35,8 @@ export class UsersService {
         email: true,
         password: true,
         activation_token: true,
+        first_name: true,  
+        last_name: true,  
         role: {
           id: true,
           name: true,

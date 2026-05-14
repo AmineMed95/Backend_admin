@@ -20,7 +20,7 @@ export interface CinData {
   firstName: string;
   lastName: string;
   birthDate: string;
-  expiryDate: string;
+  lieu: string;
   address?: string;
 }
 

@@ -214,22 +214,39 @@ export class ClientsService {
   }
 
   // ─── Get clients ─────────────────────────────────────────────────────────────
-
   async getClients(agentId: number) {
-    return this.clientRepo.find({
-      where: { created_by: agentId },
-      order: { created_at: 'DESC' },
-      select: {
-        id: true,
-        first_name: true,
-        last_name: true,
-        email: true,
-        phone: true,
-        access_code: true,
-        is_code_used: true,
-        created_at: true,
-        created_by: true,
-      },
-    });
+    const clients = await this.clientRepo
+      .createQueryBuilder('client')
+    .leftJoin(
+        'client.kycRecord',
+        'kyc',
+        'kyc.status = :status',
+        { status: 'en_attente' },
+      )
+      .where('client.created_by = :agentId', { agentId })
+      .orderBy('client.created_at', 'DESC')
+      .select([
+        'client.id',
+        'client.first_name',
+        'client.last_name',
+        'client.email',
+        'client.phone',
+        'client.access_code',
+        'client.is_code_used',
+        'client.created_at',
+        'client.created_by',
+      ])
+          .addSelect(
+          'CASE WHEN kyc.id IS NOT NULL THEN true ELSE false END',
+          'has_pending_kyc', 
+        )
+      .getRawAndEntities();
+
+    return clients.entities.map((client, i) => ({
+      ...client,
+      has_kyc:
+        clients.raw[i]?.has_pending_kyc === true ||
+        clients.raw[i]?.has_pending_kyc === 'true',
+    }));
   }
 }
