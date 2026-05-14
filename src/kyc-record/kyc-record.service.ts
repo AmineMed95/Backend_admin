@@ -107,6 +107,7 @@ export class KycRecordService {
         email: updated.client.email,
         send_via: 1, 
       });
+       await this.kycRepo.remove(updated);
     }
 
     const message =
