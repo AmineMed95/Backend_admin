@@ -132,6 +132,7 @@ export class ClientsService {
       throw new NotFoundException('Aucun client trouvé avec cet email');
     }
 
+    client.is_code_used = false;
     if (client.is_code_used) {
       throw new BadRequestException(
         'Le code a déjà été utilisé. Le processus eKYC est déjà complété.',
@@ -212,41 +213,40 @@ export class ClientsService {
       },
     };
   }
+async getClients(agentId: number) {
+  const clients = await this.clientRepo
+    .createQueryBuilder('client')
+    .leftJoinAndSelect(
+      'client.kycRecord',
+      'kyc',
+    )
+    .where('client.created_by = :agentId', { agentId })
+    .orderBy('client.created_at', 'DESC')
+    .select([
+      'client.id',
+      'client.first_name',
+      'client.last_name',
+      'client.email',
+      'client.phone',
+      'client.access_code',
+      'client.is_code_used',
+      'client.created_at',
+      'client.created_by',
+      // KYC fields
+      'kyc.id',
+      'kyc.status',
+      'kyc.cinData',     
+      'kyc.cinImageUrl',
+      'kyc.selfieImageUrl',
+      'kyc.facialMatchingScore',
+      'kyc.created_at',
+    ])
+    .getMany();
 
-  // ─── Get clients ─────────────────────────────────────────────────────────────
-  async getClients(agentId: number) {
-    const clients = await this.clientRepo
-      .createQueryBuilder('client')
-    .leftJoin(
-        'client.kycRecord',
-        'kyc',
-        'kyc.status = :status',
-        { status: 'en_attente' },
-      )
-      .where('client.created_by = :agentId', { agentId })
-      .orderBy('client.created_at', 'DESC')
-      .select([
-        'client.id',
-        'client.first_name',
-        'client.last_name',
-        'client.email',
-        'client.phone',
-        'client.access_code',
-        'client.is_code_used',
-        'client.created_at',
-        'client.created_by',
-      ])
-          .addSelect(
-          'CASE WHEN kyc.id IS NOT NULL THEN true ELSE false END',
-          'has_pending_kyc', 
-        )
-      .getRawAndEntities();
-
-    return clients.entities.map((client, i) => ({
-      ...client,
-      has_kyc:
-        clients.raw[i]?.has_pending_kyc === true ||
-        clients.raw[i]?.has_pending_kyc === 'true',
-    }));
-  }
+  return clients.map((client) => ({
+    ...client,
+    has_kyc: !!client.kycRecord,
+    kyc: client.kycRecord ?? null,
+  }));
+}
 }

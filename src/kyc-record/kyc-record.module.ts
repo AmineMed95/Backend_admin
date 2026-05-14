@@ -4,9 +4,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { KycRecord } from './kyc-record.entity';
 import { KycRecordService } from './kyc-record.service';
 import { KycRecordController } from './kyc-record.controller';
+import { ClientsModule } from 'src/clients/clients.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([KycRecord])],
+  imports: [TypeOrmModule.forFeature([KycRecord]), ClientsModule],
   controllers: [KycRecordController],
   providers: [KycRecordService],
   exports: [KycRecordService],

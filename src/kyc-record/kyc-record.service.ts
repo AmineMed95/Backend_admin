@@ -1,17 +1,24 @@
 // src/kyc-record/kyc-record.service.ts
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { KycRecord, KycStatus } from './kyc-record.entity';
 import { KycFilterDto } from './dto/kyc-filter.dto';
 import { KycRecordResponseDto } from './dto/kyc-record-response.dto';
 import { UpdateKycStatusDto } from './dto/update-kyc-status.dto';
+import { ClientsService } from '../clients/clients.service';
 
 @Injectable()
 export class KycRecordService {
   constructor(
     @InjectRepository(KycRecord)
     private readonly kycRepo: Repository<KycRecord>,
+    private readonly clientService: ClientsService, 
   ) {}
 
   async findAllByAdmin(
@@ -47,21 +54,23 @@ export class KycRecordService {
     };
   }
 
-  // US8.2 — Get full client dossier by clientId
-  async findOneByClientId(clientId: number): Promise<KycRecordResponseDto> {
+  async findOneByClientId(
+    clientId: number,
+  ): Promise<KycRecordResponseDto> {
     const record = await this.kycRepo.findOne({
       where: { client: { id: clientId } },
       relations: ['client'],
     });
 
     if (!record) {
-      throw new NotFoundException(`KYC record not found for client ${clientId}`);
+      throw new NotFoundException(
+        `KYC record not found for client ${clientId}`,
+      );
     }
 
     return this.toDto(record);
   }
 
-  // US8.3 — Validate or reject a KYC dossier
   async updateStatus(
     kycId: number,
     dto: UpdateKycStatusDto,
@@ -83,20 +92,32 @@ export class KycRecordService {
       );
     }
 
-    // Verify the agent owns this client (avoid cross-agent access)
+    // Verify ownership
     if (record.client.created_by !== agentId) {
       throw new NotFoundException(`KYC record not found`);
     }
 
+    // ✅ UPDATE STATUS
     record.status = dto.status;
     const updated = await this.kycRepo.save(record);
+    // ✅ IF REJECTED => RESEND ACCESS CODE
+    if (dto.status === KycStatus.INVALID) {
+
+      await this.clientService.resendAccessCode({
+        email: updated.client.email,
+        send_via: 1, 
+      });
+    }
 
     const message =
       dto.status === KycStatus.VALID
         ? 'Dossier validé — identité acceptée'
-        : 'Dossier rejeté — identité refusée';
+        : 'Dossier rejeté — nouveau code envoyé';
 
-    return { message, data: this.toDto(updated) };
+    return {
+      message,
+      data: this.toDto(updated),
+    };
   }
 
   private toDto(record: KycRecord): KycRecordResponseDto {
