@@ -52,7 +52,7 @@ export class UsersService {
 
   private generateStrongPassword(length = 12): string {
     const chars =
-      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+[]{}<>?';
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+[]{}?';
 
     let password = '';
     const bytes = randomBytes(length);
