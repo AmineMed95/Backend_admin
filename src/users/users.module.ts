@@ -13,6 +13,7 @@ import { EmailService } from 'src/mail/mail.service';
 import { Client } from 'src/clients/client.entity';
 import { ClientsController } from 'src/clients/clients.controller';
 import { ClientsService } from 'src/clients/clients.service';
+import { ActivationReminderTask } from './cron/activation-reminder.task';
 
 @Module({
   imports: [
@@ -20,7 +21,7 @@ import { ClientsService } from 'src/clients/clients.service';
     MailModule, 
   ],
   controllers: [UsersController, ClientsController],
-  providers: [UsersService, EmailService, ClientsService],
+  providers: [UsersService, EmailService, ClientsService, ActivationReminderTask],
   exports: [UsersService],
 })
 export class UsersModule {}

@@ -10,13 +10,14 @@ import { RolesModule } from './roles/roles.module';
 import { MailModule } from './mail/mail.module';
 import { ClientsModule } from './clients/clients.module';
 import { KycRecordModule } from './kyc-record/kyc-record.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
 
     TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
+      imports: [ConfigModule, ScheduleModule.forRoot()],
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
         type: 'postgres',

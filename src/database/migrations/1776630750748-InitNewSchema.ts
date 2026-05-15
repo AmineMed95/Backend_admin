@@ -21,6 +21,7 @@ export class InitNewSchema1776630750748 implements MigrationInterface {
             "status_id" integer,
             "created_at" TIMESTAMP NOT NULL DEFAULT now(),
             "updated_at" TIMESTAMP NOT NULL DEFAULT now(),
+            "activation_sent_at" TIMESTAMP NULL,
             CONSTRAINT "UQ_97672ac88f789774dd47f7c8be3" UNIQUE ("email"),
             CONSTRAINT "PK_a3ffb1c0c8416b9fc6f907b7433" PRIMARY KEY ("id")
         )`);

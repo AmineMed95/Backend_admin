@@ -41,6 +41,9 @@ export class User {
   @Column({ type: 'varchar', nullable: true })
   activation_token: string | null;
 
+  @Column({ type: 'timestamp', nullable: true })
+  activation_sent_at: Date | null;
+  
   @ManyToOne(() => Role, { eager: false })
   @JoinColumn({ name: 'role_id' })
   role: Role;

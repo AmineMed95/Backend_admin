@@ -13,18 +13,86 @@ export class EmailService {
     );
   }
   async sendAdminCreationEmail(email: string, password: string, token: string) {
-    const link = `http://localhost:3000/auth/activate?token=${token}`;
+    const link = `http://localhost:5173/?token=${token}`;
 
     await this.mailerService.sendMail({
-      to: email,
-      subject: 'Admin Account Created',
-      html: `
-        <h2>Welcome</h2>
-        <p>Email: ${email}</p>
-        <p>Password: ${password}</p>
-        <a href="${link}">Activate Account</a>
-      `,
-    });
+    to: email,
+    subject: 'Activation de votre compte administrateur',
+    html: `
+      <div style="
+        font-family: Arial, sans-serif;
+        max-width: 600px;
+        margin: auto;
+        padding: 24px;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        background-color: #ffffff;
+      ">
+        <h2 style="
+          color: #111827;
+          margin-bottom: 16px;
+        ">
+          Bienvenue 👋
+        </h2>
+
+        <p style="color: #374151; line-height: 1.6;">
+          Votre compte administrateur a été créé avec succès.
+        </p>
+
+        <div style="
+          margin: 24px 0;
+          padding: 16px;
+          background: #f3f4f6;
+          border-radius: 8px;
+        ">
+          <p style="margin: 0 0 8px 0;">
+            <strong>Email :</strong> ${email}
+          </p>
+
+          <p style="margin: 0;">
+            <strong>Mot de passe :</strong> ${password}
+          </p>
+        </div>
+
+        <p style="color: #374151; line-height: 1.6;">
+          Cliquez sur le bouton ci-dessous pour activer votre compte :
+        </p>
+
+        <a
+          href="${link}"
+          style="
+            display: inline-block;
+            padding: 12px 24px;
+            background: #3b82f6;
+            color: white;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: bold;
+            margin-top: 12px;
+          "
+        >
+          Activer mon compte
+        </a>
+
+        <p style="
+          margin-top: 24px;
+          color: #6b7280;
+          font-size: 14px;
+          line-height: 1.5;
+        ">
+          Pour des raisons de sécurité, nous vous recommandons de modifier votre mot de passe après votre première connexion.
+        </p>
+
+        <p style="
+          margin-top: 16px;
+          color: #9ca3af;
+          font-size: 13px;
+        ">
+          Si vous n'êtes pas à l'origine de cette création de compte, veuillez ignorer cet email.
+        </p>
+      </div>
+    `,
+  });
   }
 
   async sendPasswordResetEmail(email: string, token: string) {
