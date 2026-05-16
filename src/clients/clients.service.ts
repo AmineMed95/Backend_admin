@@ -12,7 +12,7 @@ import { CreateClientDto } from './dto/create-client.dto';
 import { ResendAccessCodeDto } from './dto/resend-access-code.dto';
 import { ClientLoginDto } from './dto/client-login-dto';
 import { EmailService } from '../mail/mail.service';
-import { randomBytes } from 'crypto';
+import { randomInt } from 'crypto';
 
 // Access code validity duration in hours
 const CODE_EXPIRY_HOURS = 48;
@@ -27,9 +27,11 @@ export class ClientsService {
 
   // ─── Helpers ────────────────────────────────────────────────────────────────
 
-  private generateAccessCode(): string {
-    return randomBytes(4).toString('hex').toUpperCase();
-  }
+private generateAccessCode(): string {
+  const otp = randomInt(100000, 1000000);
+  return otp.toString();
+}
+
 
   private getExpiryDate(): Date {
     const expiry = new Date();
@@ -38,7 +40,7 @@ export class ClientsService {
   }
 
   private isCodeExpired(client: Client): boolean {
-    if (!client.code_expires_at) return false; // no expiry set = never expires (legacy)
+    if (!client.code_expires_at) return false; 
     return new Date() > client.code_expires_at;
   }
 
