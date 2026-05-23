@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty, IsOptional, IsString, IsBoolean, Matches } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsOptional, IsString, IsBoolean, Matches, IsPositive, IsInt } from 'class-validator';
 
 export class CreateAdminDto {
 
@@ -14,10 +14,11 @@ export class CreateAdminDto {
   @IsEmail()
   email: string;
 
-  @IsOptional()
-  @IsString()
-  organization_name?: string;
-
+  @IsInt()
+  @IsPositive()
+  @IsNotEmpty()
+  organisation_id: number;
+  
   @IsNotEmpty()
   @IsString()
   @Matches(/^[0-9+ ]+$/, {

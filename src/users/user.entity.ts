@@ -10,6 +10,7 @@ import {
 
 import { Role } from '../roles/role.entity';
 import { UserStatus } from './userstatus.entity';
+import { Organisation } from '../organisation/organisation.entity';
 
 @Entity('users')
 export class User {
@@ -31,8 +32,12 @@ export class User {
   @Column({ nullable: true, unique: true })
   phone: string;
 
+  @ManyToOne(() => Organisation, { eager: true, nullable: true })
+  @JoinColumn({ name: 'organisation_id' })
+  organisation: Organisation;
+
   @Column({ nullable: true })
-  organization_name: string;
+  organisation_id: number;
 
   @ManyToOne(() => UserStatus)
   @JoinColumn({ name: 'status_id' })
@@ -43,7 +48,7 @@ export class User {
 
   @Column({ type: 'timestamp', nullable: true })
   activation_sent_at: Date | null;
-  
+
   @ManyToOne(() => Role, { eager: false })
   @JoinColumn({ name: 'role_id' })
   role: Role;

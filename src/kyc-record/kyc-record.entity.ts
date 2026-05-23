@@ -4,6 +4,7 @@ import {
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
+  DeleteDateColumn,
   OneToOne,
   JoinColumn,
 } from 'typeorm';
@@ -46,14 +47,16 @@ export class KycRecord {
   @Column({ type: 'jsonb', nullable: true, name: 'cin_data' })
   cinData: CinData;
 
-  // Path or URL of the scanned CIN document image
   @Column({ type: 'varchar', nullable: true, name: 'cin_image_url' })
   cinImageUrl: string;
 
-  // Path or URL of the client selfie image
   @Column({ type: 'varchar', nullable: true, name: 'selfie_image_url' })
   selfieImageUrl: string;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
+
+  // ── Soft delete ──────────────────────────────────────────────────────────
+  @DeleteDateColumn({ name: 'deleted_at', nullable: true })
+  deletedAt: Date | null;
 }

@@ -14,11 +14,13 @@ import { Client } from 'src/clients/client.entity';
 import { ClientsController } from 'src/clients/clients.controller';
 import { ClientsService } from 'src/clients/clients.service';
 import { ActivationReminderTask } from './cron/activation-reminder.task';
+import { OrganisationsModule } from 'src/organisation/organisations.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([User, Role, UserStatus, Client]),
     MailModule, 
+    OrganisationsModule
   ],
   controllers: [UsersController, ClientsController],
   providers: [UsersService, EmailService, ClientsService, ActivationReminderTask],

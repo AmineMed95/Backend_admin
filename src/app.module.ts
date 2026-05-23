@@ -11,6 +11,7 @@ import { MailModule } from './mail/mail.module';
 import { ClientsModule } from './clients/clients.module';
 import { KycRecordModule } from './kyc-record/kyc-record.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { OrganisationsModule } from './organisation/organisations.module';
 
 @Module({
   imports: [
@@ -36,7 +37,8 @@ import { ScheduleModule } from '@nestjs/schedule';
     RolesModule,
     MailModule,
     ClientsModule,
-    KycRecordModule
+    KycRecordModule,
+    OrganisationsModule
   ],
   controllers: [AppController],
   providers: [AppService],

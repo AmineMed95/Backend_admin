@@ -1,23 +1,26 @@
-import { IsEmail, IsOptional, IsString } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsString, IsOptional, IsEmail, IsInt, IsPositive } from 'class-validator';
 
 export class UpdateAdminDto {
-  @IsOptional()
-  @IsEmail()
-  email?: string;
-
-  @IsOptional()
   @IsString()
+  @IsOptional()
   first_name?: string;
 
-  @IsOptional()
   @IsString()
+  @IsOptional()
   last_name?: string;
 
+  @IsEmail()
   @IsOptional()
+  email?: string;
+
   @IsString()
+  @IsOptional()
   phone?: string;
 
   @IsOptional()
-  @IsString()
-  organization_name?: string;
+  @Type(() => Number)     
+  @IsInt()
+  @IsPositive()
+  organisation_id?: number;
 }

@@ -215,40 +215,52 @@ private generateAccessCode(): string {
       },
     };
   }
-async getClients(agentId: number) {
-  const clients = await this.clientRepo
-    .createQueryBuilder('client')
-    .leftJoinAndSelect(
-      'client.kycRecord',
-      'kyc',
-    )
-    .where('client.created_by = :agentId', { agentId })
-    .orderBy('client.created_at', 'DESC')
-    .select([
-      'client.id',
-      'client.first_name',
-      'client.last_name',
-      'client.email',
-      'client.phone',
-      'client.access_code',
-      'client.is_code_used',
-      'client.created_at',
-      'client.created_by',
-      // KYC fields
-      'kyc.id',
-      'kyc.status',
-      'kyc.cinData',     
-      'kyc.cinImageUrl',
-      'kyc.selfieImageUrl',
-      'kyc.facialMatchingScore',
-      'kyc.created_at',
-    ])
-    .getMany();
+    async getClients(agentId: number) {
+      const clients = await this.clientRepo
+        .createQueryBuilder('client')
+        .leftJoinAndSelect(
+          'client.kycRecord',
+          'kyc',
+          'kyc.deleted_at IS NOT NULL OR kyc.deleted_at IS NULL',
+        )
+        .withDeleted()
+        .where('client.created_by = :agentId', { agentId })
+        .orderBy('client.created_at', 'DESC')
+        .select([
+          'client.id',
+          'client.first_name',
+          'client.last_name',
+          'client.email',
+          'client.phone',
+          'client.access_code',
+          'client.is_code_used',
+          'client.created_at',
+          'client.created_by',
+          // KYC fields
+          'kyc.id',
+          'kyc.status',
+          'kyc.deleted_at', 
+          'kyc.cinData',
+          'kyc.cinImageUrl',
+          'kyc.selfieImageUrl',
+          'kyc.facialMatchingScore',
+          'kyc.createdAt',
+        ])
+        .getMany();
 
-  return clients.map((client) => ({
-    ...client,
-    has_kyc: !!client.kycRecord,
-    kyc: client.kycRecord ?? null,
-  }));
-}
+      return clients.map((client) => {
+        const kyc = client.kycRecord ?? null;
+
+        // ✅ If KYC exists but is soft-deleted, force status to non_valide
+        const kycWithStatus = kyc
+          ? { ...kyc, status: kyc.deletedAt ? 'non_valide' : kyc.status }
+          : null;
+
+        return {
+          ...client,
+          has_kyc: !!kyc,
+          kyc: kycWithStatus,
+        };
+      });
+    }
 }
