@@ -27,7 +27,7 @@ export class UsersController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('super_admin')
+  @Roles('super_admin', 'admin')
   @Patch('update-admin/:id')
   updateInactiveAdmin(
     @Param('id', ParseIntPipe) id: number,

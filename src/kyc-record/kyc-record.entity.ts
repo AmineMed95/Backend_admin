@@ -28,35 +28,35 @@ export interface CinData {
 @Entity('kyc_records')
 export class KycRecord {
   @PrimaryGeneratedColumn()
-  id: number;
+  id: number | undefined;
 
   @OneToOne(() => Client, (client) => client.kycRecord, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'client_id' })
-  client: Client;
+  client: Client | undefined;
 
   @Column({
     type: 'varchar',
     enum: KycStatus,
     default: KycStatus.PENDING,
   })
-  status: KycStatus;
+  status: KycStatus | undefined;
 
   @Column({ type: 'float', nullable: true, name: 'facial_matching_score' })
-  facialMatchingScore: number;
+  facialMatchingScore: number | undefined;
 
   @Column({ type: 'jsonb', nullable: true, name: 'cin_data' })
-  cinData: CinData;
+  cinData: CinData | undefined;
 
   @Column({ type: 'varchar', nullable: true, name: 'cin_image_url' })
-  cinImageUrl: string;
+  cinImageUrl: string | undefined;
 
   @Column({ type: 'varchar', nullable: true, name: 'selfie_image_url' })
-  selfieImageUrl: string;
+  selfieImageUrl: string | undefined;
 
   @CreateDateColumn({ name: 'created_at' })
-  createdAt: Date;
+  createdAt: Date | undefined;
 
   // ── Soft delete ──────────────────────────────────────────────────────────
   @DeleteDateColumn({ name: 'deleted_at', nullable: true })
-  deletedAt: Date | null;
+  deletedAt: Date | null | undefined;
 }

@@ -49,25 +49,30 @@ export class UsersService {
   // Helpers
   // ─────────────────────────────────────────────────────────────────────────────
 
-  findByEmail(email: string) {
-    return this.userRepo.findOne({
-      where: { email },
-      relations: ['role'],
-      select: {
+findByEmail(email: string) {
+  return this.userRepo.findOne({
+    where: { email },
+    relations: ['role', 'organisation'],
+    select: {
+      id: true,
+      email: true,
+      password: true,
+      activation_token: true,
+      first_name: true,
+      last_name: true,
+      phone:true,
+      role: {
         id: true,
-        email: true,
-        password: true,
-        activation_token: true,
-        first_name: true,
-        last_name: true,
-        role: {
-          id: true,
-          name: true,
-        },
+        name: true,
       },
-    });
-  }
-
+      organisation: {
+        id: true,
+        name_organisation: true, 
+        logo_organisation: true,  
+      },
+    },
+  });
+}
   private generateStrongPassword(length = 12): string {
     const chars =
       'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+[]{}?';
@@ -89,6 +94,20 @@ export class UsersService {
       dto.organisation_id,
     );
 
+    // ✅ One admin per organisation
+    const orgHasAdmin = await this.userRepo.findOne({
+      where: {
+        organisation_id: dto.organisation_id,
+        role: { name: 'admin' },
+      },
+      relations: ['role'],
+    });
+    if (orgHasAdmin) {
+      throw new ConflictException(
+        'Cette organisation a déjà un administrateur.',
+      );
+    }
+
     const emailExists = await this.userRepo.findOne({
       where: { email: dto.email },
     });
@@ -106,44 +125,38 @@ export class UsersService {
     }
 
     const role = await this.roleRepo.findOne({ where: { name: 'admin' } });
-    if (!role) {
-      throw new NotFoundException('Role "admin" not found');
-    }
+    if (!role) throw new NotFoundException('Role "admin" not found');
 
-    const status = await this.statusRepo.findOne({
-      where: { code: 'en_attend' },
-    });
-    if (!status) {
-      throw new NotFoundException('Status "en_attend" not found');
-    }
+    const status = await this.statusRepo.findOne({ where: { code: 'en_attend' } });
+    if (!status) throw new NotFoundException('Status "en_attend" not found');
 
     const password = this.generateStrongPassword(14);
     const hashed = await bcrypt.hash(password, 10);
     const token = randomBytes(32).toString('hex');
 
     const admin = this.userRepo.create({
-      first_name: dto.first_name,
-      last_name: dto.last_name,
-      email: dto.email,
-      phone: dto.phone,
-      password: hashed,
-      organisation_id: organisation.id,
-      role_id: role.id,
-      status,                          // guaranteed non-null
-      activation_token: token,
+      first_name:        dto.first_name,
+      last_name:         dto.last_name,
+      email:             dto.email,
+      phone:             dto.phone,
+      password:          hashed,
+      organisation_id:   organisation.id,
+      role_id:           role.id,
+      status,
+      activation_token:  token,
       activation_sent_at: new Date(),
-    });
+    })
 
-    const saved = await this.userRepo.save(admin);
-    const user = Array.isArray(saved) ? saved[0] : saved;
+    const saved = await this.userRepo.save(admin)
+    const user = Array.isArray(saved) ? saved[0] : saved
 
-    await this.emailService.sendAdminCreationEmail(user.email, password, token);
+    await this.emailService.sendAdminCreationEmail(user.email, password, token)
 
     return {
-      message: 'Admin created & email sent',
-      email: user.email,
+      message:      'Admin created & email sent',
+      email:        user.email,
       organisation: organisation.name_organisation,
-    };
+    }
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
@@ -196,7 +209,7 @@ export class UsersService {
 
     if (!admin) throw new NotFoundException('Admin not found');
     if (admin.role?.name !== 'admin') throw new ForbiddenException('User is not an admin');
-    if (admin.status?.code === 'actif') throw new ForbiddenException('Cannot update an active admin');
+   /* if (admin.status?.code === 'actif') throw new ForbiddenException('Cannot update an active admin');*/
 
     if (dto.email && dto.email !== admin.email) {
       const emailExists = await this.userRepo.findOne({ where: { email: dto.email } });

@@ -25,39 +25,47 @@ export class AuthService {
     private emailService: EmailService,
   ) {}
 
-  async login(email: string, password: string) {
-    const user = await this.usersService.findByEmail(email);
+   async login(email: string, password: string) {
+  const user = await this.usersService.findByEmail(email);
 
-    if (!user || !(await bcrypt.compare(password, user.password))) {
-      throw new UnauthorizedException('Identifiants invalides');
-    }
+  if (!user || !(await bcrypt.compare(password, user.password))) {
+    throw new UnauthorizedException('Identifiants invalides');
+  }
 
-    const allowedRoles = ['admin', 'super_admin'];
-    if (!allowedRoles.includes(user.role.name)) {
-      throw new UnauthorizedException('Access denied');
-    }
+  const allowedRoles = ['admin', 'super_admin'];
+  if (!allowedRoles.includes(user.role.name)) {
+    throw new UnauthorizedException('Access denied');
+  }
 
-    if (user.role.name === 'admin' && user.activation_token !== null) {
-      throw new UnauthorizedException(
-        "Votre compte n'est pas encore activé. Veuillez vérifier votre email.",
-      );
-    }
+  if (user.role.name === 'admin' && user.activation_token !== null) {
+    throw new UnauthorizedException(
+      "Votre compte n'est pas encore activé. Veuillez vérifier votre email.",
+    );
+  }
 
-    return {
-      access_token: this.jwtService.sign({
-        sub: user.id,  
-        role: user.role.name,
-        email: user.email, 
-      }),
-       user: {                    
+  return {
+    access_token: this.jwtService.sign({
+      sub: user.id,
+      role: user.role.name,
+      email: user.email,
+    }),
+    user: {
       id: user.id,
-      firstName: user.first_name,  
+      firstName: user.first_name,
       lastName: user.last_name,
       email: user.email,
       role: user.role.name,
+      phone: user.phone,
+      organisation: user.organisation
+        ? {
+            id: user.organisation.id,
+            name_organisation: user.organisation.name_organisation,  
+            logo_organisation: user.organisation.logo_organisation,  
+          }
+        : null,
     },
-    };
-  }
+  };
+}
 
   async logout(user: any) {
     return { message: 'Logged out successfully' };

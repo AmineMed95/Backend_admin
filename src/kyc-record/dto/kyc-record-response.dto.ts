@@ -1,25 +1,17 @@
-// src/kyc-record/dto/kyc-record-response.dto.ts
-import { CinData } from '../kyc-record.entity';
+import { KycStatus, CinData } from '../kyc-record.entity';
 
 export class KycRecordResponseDto {
-  id: number;
-  status: string;
+  id: number | undefined;
+  status: KycStatus | undefined;          // use the enum, not plain string
 
-  // OCR extracted data from the CIN document
-  cinData: CinData | null;
+  cinData: CinData | null | undefined;
+  cinImageUrl: string | null | undefined;
+  selfieImageUrl: string | null | undefined;
+  facialMatchingScore!: number | null;
 
-  // Scanned CIN document image URL
-  cinImageUrl: string | null;
+  createdAt: Date | undefined;
 
-  // Client selfie image URL
-  selfieImageUrl: string | null;
-
-  // Face matching score between selfie and CIN photo
-  facialMatchingScore: number | null;
-
-  createdAt: Date;
-
-  client: {
+  client!: {
     id: number;
     firstName: string;
     lastName: string;

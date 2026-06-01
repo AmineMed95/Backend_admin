@@ -101,23 +101,86 @@ export class EmailService {
   await this.mailerService.sendMail({
     to: email,
     subject: 'Réinitialisation de votre mot de passe',
-    html: `
-      <h2>Réinitialisation du mot de passe</h2>
-      <p>Vous avez demandé la réinitialisation de votre mot de passe.</p>
-      <p>Cliquez sur le lien ci-dessous pour définir un nouveau mot de passe :</p>
-      <a href="${resetLink}" style="
-        display: inline-block;
-        padding: 12px 24px;
-        background: #3b82f6;
-        color: white;
-        border-radius: 6px;
-        text-decoration: none;
-        font-weight: bold;
-      ">
-        Réinitialiser mon mot de passe
-      </a>
-      <p>Ce lien est valable pendant <strong>1 heure</strong>.</p>
-      <p>Si vous n'avez pas fait cette demande, ignorez cet email.</p>
+      html: `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body style="margin:0; padding:0; font-family: Arial, sans-serif;">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td align="center" style="padding: 40px 20px;">
+            <table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;">
+
+              <tr>
+                <td style="padding: 0 0 16px 0;">
+                  <h2 style="margin:0; color:#111827;">Réinitialisation du mot de passe</h2>
+                </td>
+              </tr>
+
+              <tr>
+                <td style="padding: 0 0 12px 0; color:#374151;">
+                  Vous avez demandé la réinitialisation de votre mot de passe.
+                </td>
+              </tr>
+
+              <tr>
+                <td style="padding: 0 0 24px 0; color:#374151;">
+                  Cliquez sur le bouton ci-dessous pour définir un nouveau mot de passe :
+                </td>
+              </tr>
+
+              <!-- ✅ VML button for Outlook + regular <a> for everything else -->
+              <tr>
+                <td align="center" style="padding: 0 0 24px 0;">
+                  <!--[if mso]>
+                  <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml"
+                              xmlns:w="urn:schemas-microsoft-com:office:word"
+                              href="${resetLink}"
+                              style="height:46px; v-text-anchor:middle; width:260px;"
+                              arcsize="13%"
+                              fillcolor="#3b82f6"
+                              stroke="f">
+                    <w:anchorlock/>
+                    <center style="color:#ffffff; font-family:Arial,sans-serif; font-size:15px; font-weight:bold;">
+                      Réinitialiser mon mot de passe
+                    </center>
+                  </v:roundrect>
+                  <![endif]-->
+                  <!--[if !mso]><!-->
+                  <a href="${resetLink}"
+                    target="_blank"
+                    style="
+                      display: inline-block;
+                      padding: 13px 30px;
+                      background-color: #3b82f6;
+                      color: #ffffff !important;
+                      text-decoration: none;
+                      font-family: Arial, sans-serif;
+                      font-size: 15px;
+                      font-weight: bold;
+                      border-radius: 6px;
+                      mso-hide: all;
+                    ">
+                    Réinitialiser mon mot de passe
+                  </a>
+                  <!--<![endif]-->
+                </td>
+              </tr>
+
+              <tr>
+                <td style="padding: 0 0 12px 0; color:#374151;">
+                  Ce lien est valable pendant <strong>1 heure</strong>.
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </body>
+    </html>
     `,
   });
 }
