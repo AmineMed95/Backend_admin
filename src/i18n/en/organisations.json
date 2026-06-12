@@ -1,0 +1,7 @@
+{
+  "name_exists": "Organisation name already exists",
+  "not_found": "Organisation not found",
+  "deleted": "Organisation deleted successfully",
+  "has_admins_one": "Cannot delete this organisation: 1 admin is linked to it.",
+  "has_admins_many": "Cannot delete this organisation: {count} admins are linked to it."
+}

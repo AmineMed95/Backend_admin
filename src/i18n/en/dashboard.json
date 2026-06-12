@@ -1,0 +1,14 @@
+{
+  "actions": {
+    "creation_client":    "Client created",
+    "modification_client":"Client updated",
+    "kyc_valide":         "KYC validated",
+    "kyc_rejete":         "KYC rejected"
+  },
+  "time": {
+    "instant": "just now",
+    "minutes": "{n}min ago",
+    "hours":   "{n}h ago",
+    "days":    "{n}d ago"
+  }
+}

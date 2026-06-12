@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="{{lang}}" dir="{{dir}}">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+</head>
+<body style="margin:0; padding:0; background-color:#f9fafb; font-family:Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+    <tr>
+      <td align="center" style="padding:40px 20px;">
+        <table width="600" cellpadding="0" cellspacing="0" border="0"
+               style="max-width:600px; background:#ffffff; border:1px solid #e5e7eb; border-radius:12px; padding:32px;">
+
+          <!-- Header -->
+          <tr>
+            <td style="padding:0 0 20px 0;">
+              <h2 style="margin:0; color:#111827; font-size:22px;">{{greeting}} 👋</h2>
+            </td>
+          </tr>
+
+          <!-- Intro -->
+          <tr>
+            <td style="padding:0 0 16px 0; color:#374151; line-height:1.6;">
+              {{created}}
+            </td>
+          </tr>
+
+          <!-- Credentials box -->
+          <tr>
+            <td style="padding:0 0 24px 0;">
+              <div style="background:#f3f4f6; border-radius:8px; padding:16px;">
+                <p style="margin:0 0 8px 0; color:#374151;">
+                  <strong>{{email_label}} :</strong> {{email}}
+                </p>
+                <p style="margin:0; color:#374151;">
+                  <strong>{{password_label}} :</strong> {{password}}
+                </p>
+              </div>
+            </td>
+          </tr>
+
+          <!-- CTA instruction -->
+          <tr>
+            <td style="padding:0 0 12px 0; color:#374151; line-height:1.6;">
+              {{cta_text}}
+            </td>
+          </tr>
+
+          <!-- Button -->
+          <tr>
+            <td style="padding:0 0 28px 0;">
+              <a href="{{link}}"
+                 style="
+                   display:inline-block;
+                   padding:12px 28px;
+                   background:#3b82f6;
+                   color:#ffffff;
+                   border-radius:6px;
+                   text-decoration:none;
+                   font-weight:bold;
+                   font-size:15px;
+                 ">
+                {{cta_label}}
+              </a>
+            </td>
+          </tr>
+
+          <!-- Security notice -->
+          <tr>
+            <td style="padding:0 0 12px 0; color:#6b7280; font-size:13px; line-height:1.5;">
+              {{security_notice}}
+            </td>
+          </tr>
+
+          <!-- Ignore notice -->
+          <tr>
+            <td style="color:#9ca3af; font-size:12px;">
+              {{ignore}}
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

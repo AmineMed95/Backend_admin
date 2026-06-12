@@ -1,0 +1,20 @@
+{
+  "org_has_admin": "Cette organisation a déjà un administrateur.",
+  "email_exists": "Cet email existe déjà",
+  "phone_exists": "Ce numéro de téléphone existe déjà",
+  "role_not_found": "Rôle \"admin\" introuvable",
+  "status_not_found": "Statut \"en_attend\" introuvable",
+  "admin_created": "Administrateur créé et email envoyé",
+  "admin_not_found": "Administrateur introuvable",
+  "not_admin": "Cet utilisateur n'est pas un administrateur",
+  "admin_updated": "Administrateur mis à jour avec succès",
+  "cannot_delete_active": "Impossible de supprimer un administrateur actif",
+  "admin_deleted": "Administrateur supprimé avec succès",
+  "already_activated": "Le compte administrateur est déjà activé",
+  "resend_wait": "L'email d'activation a déjà été envoyé. Veuillez attendre encore {hours} heure(s) avant de renvoyer.",
+  "activation_resent": "Email d'activation renvoyé avec succès",
+  "user_not_found": "Utilisateur introuvable.",
+  "wrong_password": "Mot de passe actuel incorrect.",
+  "same_password": "Le nouveau mot de passe doit être différent de l'ancien.",
+  "password_changed": "Mot de passe modifié avec succès."
+}

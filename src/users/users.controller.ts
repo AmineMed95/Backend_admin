@@ -1,12 +1,15 @@
-import { Controller, Post, Body, UseGuards, Get, Patch, Delete, Param, ParseIntPipe, Req } from '@nestjs/common';
+import {
+  Controller, Post, Body, UseGuards, Get,
+  Patch, Delete, Param, ParseIntPipe, Req, Headers,
+} from '@nestjs/common';
 import { UsersService } from './users.service';
-
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { UpdateAdminDto } from './dto/update-admin.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { resolveLang } from '../common/utils/lang.util';
 
 @Controller('users')
 export class UsersController {
@@ -15,8 +18,11 @@ export class UsersController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('super_admin')
   @Post('create-admin')
-  createAdmin(@Body() dto: CreateAdminDto) {
-    return this.usersService.createAdmin(dto);
+  createAdmin(
+    @Body() dto: CreateAdminDto,
+    @Headers('accept-language') lang: string,
+  ) {
+    return this.usersService.createAdmin(dto, resolveLang(lang));
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -32,20 +38,28 @@ export class UsersController {
   updateInactiveAdmin(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateAdminDto,
+    @Headers('accept-language') lang: string,
   ) {
-    return this.usersService.updateInactiveAdmin(id, dto);
+    return this.usersService.updateInactiveAdmin(id, dto, resolveLang(lang));
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('super_admin')
   @Delete('delete-admin/:id')
-  deleteInactiveAdmin(@Param('id', ParseIntPipe) id: number) {
-    return this.usersService.deleteInactiveAdmin(id);
+  deleteInactiveAdmin(
+    @Param('id', ParseIntPipe) id: number,
+    @Headers('accept-language') lang: string,
+  ) {
+    return this.usersService.deleteInactiveAdmin(id, resolveLang(lang));
   }
 
   @UseGuards(JwtAuthGuard)
   @Post('change-password')
-  changePassword(@Req() req: any, @Body() dto: ChangePasswordDto) {
-    return this.usersService.changePassword(req.user.userId, dto);
+  changePassword(
+    @Req() req: any,
+    @Body() dto: ChangePasswordDto,
+    @Headers('accept-language') lang: string,
+  ) {
+    return this.usersService.changePassword(req.user.userId, dto, resolveLang(lang));
   }
 }

@@ -1,41 +1,55 @@
-import { Controller, Post, Body, Get, Query, Req, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, Get, Query, Req, UseGuards, Headers } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { resolveLang } from '../common/utils/lang.util';
 
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
-  /*@Post('register')
-  register(@Body() body: any) {
-    return this.authService.register(body.email, body.password);
-  }*/
-
   @Post('login')
-  login(@Body() body: any) {
-    return this.authService.login(body.email, body.password);
+  login(
+    @Body() body: any,
+    @Headers('accept-language') lang: string,
+  ) {
+    return this.authService.login(body.email, body.password, resolveLang(lang));
   }
 
-    @UseGuards(JwtAuthGuard)
-    @Post('logout')
-    logout(@Req() req: any) {
-      return this.authService.logout(req.user);
-    }
-
-    @Get('activate')
-  activateAccount(@Query('token') token: string) {
-    return this.authService.activateAccount(token);
+  @UseGuards(JwtAuthGuard)
+  @Post('logout')
+  logout(
+    @Req() req: any,
+    @Headers('accept-language') lang: string,
+  ) {
+    return this.authService.logout(req.user, resolveLang(lang));
   }
 
-  // 👇 Step 1 — Request password reset
+  @Get('activate')
+  activateAccount(
+    @Query('token') token: string,
+    @Headers('accept-language') lang: string,
+  ) {
+    return this.authService.activateAccount(token, resolveLang(lang));
+  }
+
   @Post('forgot-password')
-  forgotPassword(@Body() body: any) {
-    return this.authService.forgotPassword(body.email);
+  forgotPassword(
+    @Body() body: any,
+    @Headers('accept-language') lang: string,
+  ) {
+    return this.authService.forgotPassword(body.email, resolveLang(lang));
   }
 
-  // 👇 Step 2 — Reset password with token
-@Post('reset-password')
-resetPassword(@Body() body: any) {
-  return this.authService.resetPassword(body.token, body.password, body.confirm_password);
-}
+  @Post('reset-password')
+  resetPassword(
+    @Body() body: any,
+    @Headers('accept-language') lang: string,
+  ) {
+    return this.authService.resetPassword(
+      body.token,
+      body.password,
+      body.confirm_password,
+      resolveLang(lang),
+    );
+  }
 }

@@ -67,6 +67,7 @@ export class ActivationReminderTask {
           admin.email,
           newPassword,
           newToken,
+          'fr',
         );
 
         this.logger.log(`Activation email resent to ${admin.email}`);

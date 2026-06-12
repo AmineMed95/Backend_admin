@@ -1,0 +1,29 @@
+{
+  "activation": {
+    "subject": "Activation de votre compte administrateur",
+    "greeting": "Bienvenue",
+    "created": "Votre compte administrateur a été créé avec succès.",
+    "email_label": "Email",
+    "password_label": "Mot de passe",
+    "cta_text": "Cliquez sur le bouton ci-dessous pour activer votre compte :",
+    "cta_label": "Activer mon compte",
+    "security_notice": "Pour des raisons de sécurité, nous vous recommandons de modifier votre mot de passe après votre première connexion.",
+    "ignore": "Si vous n'êtes pas à l'origine de cette création de compte, veuillez ignorer cet email."
+  },
+  "reset": {
+    "subject": "Réinitialisation de votre mot de passe",
+    "title": "Réinitialisation du mot de passe",
+    "intro": "Vous avez demandé la réinitialisation de votre mot de passe.",
+    "cta_text": "Cliquez sur le bouton ci-dessous pour définir un nouveau mot de passe :",
+    "cta_label": "Réinitialiser mon mot de passe",
+    "validity": "Ce lien est valable pendant <strong>1 heure</strong>."
+  },
+  "access_code": {
+    "subject": "Votre code d'accès eKYC",
+    "greeting": "Bonjour",
+    "intro": "Votre compte a été créé avec succès. Voici votre code d'accès unique pour vous connecter à l'application eKYC :",
+    "label": "Votre code d'accès",
+    "warning": "⚠️ Ce code est personnel et confidentiel. Ne le partagez avec personne.",
+    "contact": "Si vous n'attendiez pas ce message, veuillez contacter votre conseiller bancaire."
+  }
+}

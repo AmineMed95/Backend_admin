@@ -1,22 +1,20 @@
-// src/organisation/multer.config.ts
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { BadRequestException } from '@nestjs/common';
-import { Options } from 'multer';
 
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'];
-const MAX_SIZE_BYTES = 5 * 1024 * 1024; // ← 5 MB (was 2 MB)
+const MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
 
-export const logoMulterOptions: Options = {
+export const logoMulterOptions = {
   storage: diskStorage({
     destination: './uploads/logos',
-    filename: (_req, file, cb) => {
+    filename: (_req: any, file: any, cb: (error: Error | null, filename: string) => void) => {
       const unique = `${Date.now()}-${Math.round(Math.random() * 1e6)}`;
       cb(null, `logo-${unique}${extname(file.originalname)}`);
     },
   }),
   limits: { fileSize: MAX_SIZE_BYTES },
-  fileFilter: (_req, file, cb) => {
+  fileFilter: (_req: any, file: any, cb: (error: Error | null, acceptFile: boolean) => void) => {
     if (ALLOWED_MIME_TYPES.includes(file.mimetype)) {
       cb(null, true);
     } else {

@@ -10,6 +10,8 @@ import { KycFilterDto } from './dto/kyc-filter.dto';
 import { KycRecordResponseDto } from './dto/kyc-record-response.dto';
 import { UpdateKycStatusDto } from './dto/update-kyc-status.dto';
 import { ClientsService } from '../clients/clients.service';
+import { t } from '../common/utils/translate.util';
+import { SupportedLang } from '../common/utils/lang.util';
 
 @Injectable()
 export class KycRecordService {
@@ -75,6 +77,7 @@ export class KycRecordService {
     kycId: number,
     dto: UpdateKycStatusDto,
     agentId: number,
+    lang: SupportedLang,
   ): Promise<{ message: string; data: KycRecordResponseDto }> {
     const record = await this.kycRepo.findOne({
       where: { id: kycId },
@@ -82,48 +85,43 @@ export class KycRecordService {
     });
 
     if (!record) {
-      throw new NotFoundException(`KYC record not found`);
+      throw new NotFoundException(t('kyc.record_not_found', lang));
     }
 
     if (record.status !== KycStatus.PENDING) {
       throw new BadRequestException(
-        `Ce dossier a déjà été traité (statut actuel : ${record.status})`,
+        t('kyc.already_processed', lang, { status: record.status }),
       );
     }
 
-    // ✅ Guard: client relation must be loaded
     if (!record.client) {
-      throw new NotFoundException(`Client not found for KYC record ${kycId}`);
+      throw new NotFoundException(t('kyc.record_not_found', lang));
     }
 
     if (record.client.created_by !== agentId) {
-      throw new NotFoundException(`KYC record not found`);
+      throw new NotFoundException(t('kyc.record_not_found', lang));
     }
 
     record.status = dto.status;
     const updated = await this.kycRepo.save(record);
 
     if (dto.status === KycStatus.INVALID) {
-      // ✅ Guard: client must still be present after save
       if (!updated.client) {
-        throw new NotFoundException(`Client not found after KYC update`);
+        throw new NotFoundException(t('kyc.record_not_found', lang));
       }
 
-      await this.clientService.resendAccessCode({
-        email: updated.client.email,
-        send_via: 1,
-      });
+      await this.clientService.resendAccessCode(
+        { email: updated.client.email, send_via: 1 },
+        lang,
+      );
 
       await this.kycRepo.softRemove(updated);
     }
 
-    const message =
-      dto.status === KycStatus.VALID
-        ? 'Dossier validé — identité acceptée'
-        : 'Dossier rejeté — nouveau code envoyé';
-
     return {
-      message,
+      message: dto.status === KycStatus.VALID
+        ? t('kyc.validated', lang)
+        : t('kyc.rejected', lang),
       data: this.toDto(updated),
     };
   }

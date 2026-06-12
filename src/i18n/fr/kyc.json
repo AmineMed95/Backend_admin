@@ -1,0 +1,6 @@
+{
+  "record_not_found": "Dossier KYC introuvable",
+  "already_processed": "Ce dossier a déjà été traité (statut actuel : {status})",
+  "validated": "Dossier validé — identité acceptée",
+  "rejected": "Dossier rejeté — nouveau code envoyé"
+}

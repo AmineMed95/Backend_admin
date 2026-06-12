@@ -1,0 +1,6 @@
+{
+  "record_not_found": "KYC record not found",
+  "already_processed": "This record has already been processed (current status: {status})",
+  "validated": "Record validated — identity accepted",
+  "rejected": "Record rejected — new code sent"
+}

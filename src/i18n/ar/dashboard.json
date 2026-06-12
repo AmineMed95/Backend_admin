@@ -1,0 +1,14 @@
+{
+  "actions": {
+    "creation_client":    "إنشاء عميل",
+    "modification_client":"تعديل عميل",
+    "kyc_valide":         "تم التحقق من الهوية",
+    "kyc_rejete":         "رُفض التحقق من الهوية"
+  },
+  "time": {
+    "instant": "الآن",
+    "minutes": "منذ {n} دقيقة",
+    "hours":   "منذ {n} ساعة",
+    "days":    "منذ {n} يوم"
+  }
+}

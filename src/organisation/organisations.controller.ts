@@ -1,4 +1,3 @@
-// src/organisation/organisations.controller.ts
 import {
   Controller,
   Post,
@@ -11,6 +10,7 @@ import {
   UseGuards,
   UseInterceptors,
   UploadedFile,
+  Headers,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { OrganisationsService } from './organisations.service';
@@ -20,7 +20,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { logoMulterOptions } from './multer.config';
-import { Multer } from 'multer';
+import { resolveLang } from '../common/utils/lang.util';
 
 @Controller('organisations')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -28,42 +28,45 @@ import { Multer } from 'multer';
 export class OrganisationsController {
   constructor(private readonly organisationsService: OrganisationsService) {}
 
-  // POST /create  (multipart/form-data)
- @Post('create') 
- @UseInterceptors(FileInterceptor('logo_organisation', logoMulterOptions))
+  @Post('create')
+  @UseInterceptors(FileInterceptor('logo_organisation', logoMulterOptions))
   create(
     @Body() dto: CreateOrganisationDto,
-    @UploadedFile() file: Multer.File,
+    @UploadedFile() file: Express.Multer.File,
+    @Headers('accept-language') lang: string,
   ) {
-    return this.organisationsService.create(dto, file?.path);
+    return this.organisationsService.create(dto, file?.path, resolveLang(lang));
   }
 
-  // GET /get-list
   @Get('get-list')
   findAll() {
     return this.organisationsService.findAll();
   }
 
-  // GET /get-organisation/:id
   @Get('get-organisation/:id')
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.organisationsService.findOne(id);
+  findOne(
+    @Param('id', ParseIntPipe) id: number,
+    @Headers('accept-language') lang: string,
+  ) {
+    return this.organisationsService.findOne(id, resolveLang(lang));
   }
 
-  // PATCH /update/:id  (multipart/form-data)
   @Patch('update/:id')
   @UseInterceptors(FileInterceptor('logo_organisation', logoMulterOptions))
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateOrganisationDto,
-    @UploadedFile() file: Multer.File,
+    @UploadedFile() file: Express.Multer.File,
+    @Headers('accept-language') lang: string,
   ) {
-    return this.organisationsService.update(id, dto, file?.path);
+    return this.organisationsService.update(id, dto, file?.path, resolveLang(lang));
   }
 
-  // DELETE /delete/:id
   @Delete('delete/:id')
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.organisationsService.remove(id);
+  remove(
+    @Param('id', ParseIntPipe) id: number,
+    @Headers('accept-language') lang: string,
+  ) {
+    return this.organisationsService.remove(id, resolveLang(lang));
   }
 }

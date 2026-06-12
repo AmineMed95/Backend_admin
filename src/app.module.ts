@@ -3,6 +3,8 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { I18nModule, AcceptLanguageResolver, QueryResolver } from 'nestjs-i18n';
+import * as path from 'path';
 
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
@@ -12,10 +14,22 @@ import { ClientsModule } from './clients/clients.module';
 import { KycRecordModule } from './kyc-record/kyc-record.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { OrganisationsModule } from './organisation/organisations.module';
+import { DashboardModule } from './dashboard-stats/dashboard.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    I18nModule.forRoot({
+      fallbackLanguage: 'fr',
+      loaderOptions: {
+        path: path.join(__dirname, '/i18n/'),
+        watch: true,
+      },
+      resolvers: [
+        { use: QueryResolver, options: ['lang'] },
+        AcceptLanguageResolver,
+      ],
+    }),
 
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule, ScheduleModule.forRoot()],
@@ -38,7 +52,8 @@ import { OrganisationsModule } from './organisation/organisations.module';
     MailModule,
     ClientsModule,
     KycRecordModule,
-    OrganisationsModule
+    OrganisationsModule,
+    DashboardModule
   ],
   controllers: [AppController],
   providers: [AppService],

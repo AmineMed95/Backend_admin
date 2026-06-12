@@ -1,0 +1,20 @@
+{
+  "org_has_admin": "This organisation already has an administrator.",
+  "email_exists": "Email already exists",
+  "phone_exists": "Phone number already exists",
+  "role_not_found": "Role \"admin\" not found",
+  "status_not_found": "Status \"en_attend\" not found",
+  "admin_created": "Admin created & email sent",
+  "admin_not_found": "Admin not found",
+  "not_admin": "User is not an admin",
+  "admin_updated": "Admin updated successfully",
+  "cannot_delete_active": "Cannot delete an active admin",
+  "admin_deleted": "Admin deleted successfully",
+  "already_activated": "Admin account is already activated",
+  "resend_wait": "Activation email was already sent. Please wait {hours} more hour(s) before resending.",
+  "activation_resent": "Activation email resent successfully",
+  "user_not_found": "User not found.",
+  "wrong_password": "Current password is incorrect.",
+  "same_password": "New password must be different from the old one.",
+  "password_changed": "Password changed successfully."
+}

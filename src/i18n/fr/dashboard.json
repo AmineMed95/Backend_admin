@@ -1,0 +1,14 @@
+{
+  "actions": {
+    "creation_client":    "Création client",
+    "modification_client":"Modification client",
+    "kyc_valide":         "KYC validé",
+    "kyc_rejete":         "KYC rejeté"
+  },
+  "time": {
+    "instant": "à l'instant",
+    "minutes": "il y a {n}min",
+    "hours":   "il y a {n}h",
+    "days":    "il y a {n}j"
+  }
+}

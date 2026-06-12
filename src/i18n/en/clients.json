@@ -1,0 +1,15 @@
+{
+  "email_or_phone_required": "Email or phone number is required",
+  "invalid_code": "Invalid or expired access code",
+  "code_already_used": "This code has already been used. The eKYC process is already complete.",
+  "code_expired": "Access code expired. Please request a new code.",
+  "login_success": "Login successful. You can start the eKYC process.",
+  "client_not_found": "No client found with this email",
+  "no_phone_for_sms": "No phone number associated with this client for SMS sending",
+  "new_code_email": "New access code sent by email",
+  "new_code_sms": "New access code sent by SMS",
+  "email_exists": "Email already exists",
+  "phone_required_sms": "A phone number is required for SMS sending",
+  "created_email": "Client created and access code sent by email",
+  "created_sms": "Client created and access code sent by SMS"
+}

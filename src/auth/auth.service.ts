@@ -12,6 +12,8 @@ import { User } from '../users/user.entity';
 import { UserStatus } from '../users/userstatus.entity';
 import { EmailService } from '../mail/mail.service';
 import { randomBytes } from 'crypto';
+import { t } from '../common/utils/translate.util';
+import { SupportedLang } from '../common/utils/lang.util';
 
 @Injectable()
 export class AuthService {
@@ -25,83 +27,75 @@ export class AuthService {
     private emailService: EmailService,
   ) {}
 
-   async login(email: string, password: string) {
-  const user = await this.usersService.findByEmail(email);
+  async login(email: string, password: string, lang: SupportedLang) {
+    const user = await this.usersService.findByEmail(email);
 
-  if (!user || !(await bcrypt.compare(password, user.password))) {
-    throw new UnauthorizedException('Identifiants invalides');
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+      throw new UnauthorizedException(t('auth.invalid_credentials', lang));
+    }
+
+    const allowedRoles = ['admin', 'super_admin'];
+    if (!allowedRoles.includes(user.role.name)) {
+      throw new UnauthorizedException(t('auth.access_denied', lang));
+    }
+
+    if (user.role.name === 'admin' && user.activation_token !== null) {
+      throw new UnauthorizedException(t('auth.account_not_activated', lang));
+    }
+
+    return {
+      access_token: this.jwtService.sign({
+        sub: user.id,
+        role: user.role.name,
+        email: user.email,
+      }),
+      user: {
+        id: user.id,
+        firstName: user.first_name,
+        lastName: user.last_name,
+        email: user.email,
+        role: user.role.name,
+        phone: user.phone,
+        organisation: user.organisation
+          ? {
+              id: user.organisation.id,
+              name_organisation: user.organisation.name_organisation,
+              logo_organisation: user.organisation.logo_organisation,
+            }
+          : null,
+      },
+    };
   }
 
-  const allowedRoles = ['admin', 'super_admin'];
-  if (!allowedRoles.includes(user.role.name)) {
-    throw new UnauthorizedException('Access denied');
+  async logout(_user: any, lang: SupportedLang) {
+    return { message: t('auth.logged_out', lang) };
   }
 
-  if (user.role.name === 'admin' && user.activation_token !== null) {
-    throw new UnauthorizedException(
-      "Votre compte n'est pas encore activé. Veuillez vérifier votre email.",
-    );
-  }
-
-  return {
-    access_token: this.jwtService.sign({
-      sub: user.id,
-      role: user.role.name,
-      email: user.email,
-    }),
-    user: {
-      id: user.id,
-      firstName: user.first_name,
-      lastName: user.last_name,
-      email: user.email,
-      role: user.role.name,
-      phone: user.phone,
-      organisation: user.organisation
-        ? {
-            id: user.organisation.id,
-            name_organisation: user.organisation.name_organisation,  
-            logo_organisation: user.organisation.logo_organisation,  
-          }
-        : null,
-    },
-  };
-}
-
-  async logout(user: any) {
-    return { message: 'Logged out successfully' };
-  }
-
-  async activateAccount(token: string) {
-    const user = await this.userRepo.findOne({
-      where: { activation_token: token },
-    });
+  async activateAccount(token: string, lang: SupportedLang) {
+    const user = await this.userRepo.findOne({ where: { activation_token: token } });
     if (!user) {
-      throw new BadRequestException('Invalid token');
+      throw new BadRequestException(t('auth.invalid_token', lang));
     }
-    const activeStatus = await this.statusRepo.findOne({
-      where: { code: 'actif' },
-    });
+
+    const activeStatus = await this.statusRepo.findOne({ where: { code: 'actif' } });
     if (!activeStatus) {
-      throw new BadRequestException('Active status not found');
+      throw new BadRequestException(t('auth.status_not_found', lang));
     }
+
     user.status = activeStatus;
     user.activation_token = null;
     await this.userRepo.save(user);
-    return { message: 'Account activated successfully' };
+
+    return { message: t('auth.account_activated', lang) };
   }
 
-  // 👇 Step 1 — Generate token and send email
-  async forgotPassword(email: string) {
-    const user = await this.userRepo.findOne({
-      where: { email },
-      relations: ['role'],
-    });
+  async forgotPassword(email: string, lang: SupportedLang) {
+    const user = await this.userRepo.findOne({ where: { email }, relations: ['role'] });
 
     if (!user) {
-      throw new BadRequestException('Email non trouvé');
+      throw new BadRequestException(t('auth.email_not_found', lang));
     }
 
-    // Generate reset token valid for 1 hour
     const token = randomBytes(32).toString('hex');
     const expires = new Date();
     expires.setHours(expires.getHours() + 1);
@@ -110,27 +104,29 @@ export class AuthService {
     user.reset_password_expires = expires;
     await this.userRepo.save(user);
 
-    await this.emailService.sendPasswordResetEmail(user.email, token);
+    await this.emailService.sendPasswordResetEmail(user.email, token, lang);
 
-    return { message: 'Email de réinitialisation envoyé' };
+    return { message: t('auth.reset_email_sent', lang) };
   }
 
-  async resetPassword(token: string, newPassword: string, confirmPassword: string) {
-    // 👇 Check passwords match
+  async resetPassword(
+    token: string,
+    newPassword: string,
+    confirmPassword: string,
+    lang: SupportedLang,
+  ) {
     if (newPassword !== confirmPassword) {
-      throw new BadRequestException('Les mots de passe ne correspondent pas');
+      throw new BadRequestException(t('auth.passwords_dont_match', lang));
     }
 
-    const user = await this.userRepo.findOne({
-      where: { reset_password_token: token },
-    });
+    const user = await this.userRepo.findOne({ where: { reset_password_token: token } });
 
     if (!user) {
-      throw new BadRequestException('Lien invalide ou expiré');
+      throw new BadRequestException(t('auth.invalid_link', lang));
     }
 
     if (!user.reset_password_expires || user.reset_password_expires < new Date()) {
-      throw new BadRequestException('Lien expiré. Veuillez faire une nouvelle demande.');
+      throw new BadRequestException(t('auth.link_expired', lang));
     }
 
     user.password = await bcrypt.hash(newPassword, 10);
@@ -138,6 +134,6 @@ export class AuthService {
     user.reset_password_expires = null;
     await this.userRepo.save(user);
 
-    return { message: 'Mot de passe mis à jour avec succès' };
+    return { message: t('auth.password_updated', lang) };
   }
 }

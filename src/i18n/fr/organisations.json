@@ -1,0 +1,7 @@
+{
+  "name_exists": "Ce nom d'organisation existe déjà",
+  "not_found": "Organisation introuvable",
+  "deleted": "Organisation supprimée avec succès",
+  "has_admins_one": "Impossible de supprimer cette organisation : 1 admin est associé à cette organisation.",
+  "has_admins_many": "Impossible de supprimer cette organisation : {count} admins sont associés à cette organisation."
+}

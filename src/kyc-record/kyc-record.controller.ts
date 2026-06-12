@@ -9,7 +9,9 @@ import {
   UseGuards,
   ParseIntPipe,
   Req,
+  Headers,
 } from '@nestjs/common';
+import { resolveLang } from '../common/utils/lang.util';
 import { KycRecordService } from './kyc-record.service';
 import { KycFilterDto } from './dto/kyc-filter.dto';
 import { UpdateKycStatusDto } from './dto/update-kyc-status.dto';
@@ -43,7 +45,8 @@ export class KycRecordController {
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateKycStatusDto,
     @Req() req: any,
+    @Headers('accept-language') lang: string,
   ) {
-    return this.kycRecordService.updateStatus(id, dto, req.user.userId);
+    return this.kycRecordService.updateStatus(id, dto, req.user.userId, resolveLang(lang));
   }
 }

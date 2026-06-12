@@ -13,8 +13,9 @@ import { ResendAccessCodeDto } from './dto/resend-access-code.dto';
 import { ClientLoginDto } from './dto/client-login-dto';
 import { EmailService } from '../mail/mail.service';
 import { randomInt } from 'crypto';
+import { t } from '../common/utils/translate.util';
+import { SupportedLang } from '../common/utils/lang.util';
 
-// Access code validity duration in hours
 const CODE_EXPIRY_HOURS = 48;
 
 @Injectable()
@@ -25,13 +26,11 @@ export class ClientsService {
     private emailService: EmailService,
   ) {}
 
-  // ─── Helpers ────────────────────────────────────────────────────────────────
+  // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-private generateAccessCode(): string {
-  const otp = randomInt(100000, 1000000);
-  return otp.toString();
-}
-
+  private generateAccessCode(): string {
+    return randomInt(100000, 1000000).toString();
+  }
 
   private getExpiryDate(): Date {
     const expiry = new Date();
@@ -40,7 +39,7 @@ private generateAccessCode(): string {
   }
 
   private isCodeExpired(client: Client): boolean {
-    if (!client.code_expires_at) return false; 
+    if (!client.code_expires_at) return false;
     return new Date() > client.code_expires_at;
   }
 
@@ -57,62 +56,44 @@ private generateAccessCode(): string {
 
   private async sendCode(client: Client, send_via: number): Promise<void> {
     if (send_via === 1) {
-      await this.emailService.sendClientAccessCode(
-        client.email,
-        client.first_name,
-        client.access_code,
-      );
+      await this.emailService.sendClientAccessCode(client.email, client.first_name, client.access_code, 'fr');
     } else if (send_via === 2) {
-      await this.emailService.sendClientAccessCodeSms(
-        client.phone,
-        client.first_name,
-        client.access_code,
-      );
+      await this.emailService.sendClientAccessCodeSms(client.phone, client.first_name, client.access_code, 'fr');
     }
   }
 
-  // ─── US4.1 — Login with access code ─────────────────────────────────────────
+  // ─── Login with access code ───────────────────────────────────────────────────
 
-  async loginWithAccessCode(dto: ClientLoginDto) {
+  async loginWithAccessCode(dto: ClientLoginDto, lang: SupportedLang) {
     if (!dto.email && !dto.phone) {
-      throw new BadRequestException('Email ou numéro de téléphone requis');
+      throw new BadRequestException(t('clients.email_or_phone_required', lang));
     }
 
-    // Find client by email or phone
     const client = await this.clientRepo.findOne({
       where: dto.email ? { email: dto.email } : { phone: dto.phone },
     });
 
-    // Generic error — do not reveal if email/phone exists
     if (!client) {
-      throw new UnauthorizedException("Code d'accès invalide ou expiré");
+      throw new UnauthorizedException(t('clients.invalid_code', lang));
     }
 
-    // Check code match
     if (client.access_code !== dto.access_code.toUpperCase()) {
-      throw new UnauthorizedException("Code d'accès invalide ou expiré");
+      throw new UnauthorizedException(t('clients.invalid_code', lang));
     }
 
-    // Check if already used
     if (client.is_code_used) {
-      throw new BadRequestException(
-        'Ce code a déjà été utilisé. Le processus eKYC est déjà complété.',
-      );
+      throw new BadRequestException(t('clients.code_already_used', lang));
     }
 
-    // Check expiry
     if (this.isCodeExpired(client)) {
-      throw new UnauthorizedException(
-        "Code d'accès expiré. Veuillez demander un nouveau code.",
-      );
+      throw new UnauthorizedException(t('clients.code_expired', lang));
     }
 
-    // Mark code as used
     client.is_code_used = true;
     await this.clientRepo.save(client);
 
     return {
-      message: 'Connexion réussie. Vous pouvez commencer le processus eKYC.',
+      message: t('clients.login_success', lang),
       data: {
         id: client.id,
         first_name: client.first_name,
@@ -123,31 +104,23 @@ private generateAccessCode(): string {
     };
   }
 
-  // ─── US4.2 — Resend access code ──────────────────────────────────────────────
+  // ─── Resend access code ───────────────────────────────────────────────────────
 
-  async resendAccessCode(dto: ResendAccessCodeDto) {
-    const client = await this.clientRepo.findOne({
-      where: { email: dto.email },
-    });
+  async resendAccessCode(dto: ResendAccessCodeDto, lang: SupportedLang) {
+    const client = await this.clientRepo.findOne({ where: { email: dto.email } });
 
     if (!client) {
-      throw new NotFoundException('Aucun client trouvé avec cet email');
+      throw new NotFoundException(t('clients.client_not_found', lang));
     }
 
-    client.is_code_used = false;
     if (client.is_code_used) {
-      throw new BadRequestException(
-        'Le code a déjà été utilisé. Le processus eKYC est déjà complété.',
-      );
+      throw new BadRequestException(t('clients.code_already_used', lang));
     }
 
     if (dto.send_via === 2 && !client.phone) {
-      throw new BadRequestException(
-        "Aucun numéro de téléphone associé à ce client pour l'envoi SMS",
-      );
+      throw new BadRequestException(t('clients.no_phone_for_sms', lang));
     }
 
-    // Generate new code + reset expiry
     client.access_code = await this.generateUniqueCode();
     client.code_expires_at = this.getExpiryDate();
     const updated = await this.clientRepo.save(client);
@@ -155,10 +128,9 @@ private generateAccessCode(): string {
     await this.sendCode(updated, dto.send_via);
 
     return {
-      message:
-        dto.send_via === 1
-          ? "Nouveau code d'accès envoyé par email"
-          : "Nouveau code d'accès envoyé par SMS",
+      message: dto.send_via === 1
+        ? t('clients.new_code_email', lang)
+        : t('clients.new_code_sms', lang),
       data: {
         id: updated.id,
         first_name: updated.first_name,
@@ -170,39 +142,30 @@ private generateAccessCode(): string {
     };
   }
 
-  // ─── Create client ───────────────────────────────────────────────────────────
+  // ─── Create client ────────────────────────────────────────────────────────────
 
-  async createClient(dto: CreateClientDto, agentId: number) {
-    const existing = await this.clientRepo.findOne({
-      where: { email: dto.email },
-    });
+  async createClient(dto: CreateClientDto, agentId: number, lang: SupportedLang) {
+    const existing = await this.clientRepo.findOne({ where: { email: dto.email } });
     if (existing) {
-      throw new ConflictException('Email already exists');
+      throw new ConflictException(t('clients.email_exists', lang));
     }
 
     if (dto.send_via === 2 && !dto.phone) {
-      throw new BadRequestException('Phone number is required for SMS sending');
+      throw new BadRequestException(t('clients.phone_required_sms', lang));
     }
 
     const access_code = await this.generateUniqueCode();
 
-    const client = this.clientRepo.create({
-      ...dto,
-      access_code,
-      created_by: agentId,
-    });
-
-    // Assign explicitly after create() so TypeORM never drops it
+    const client = this.clientRepo.create({ ...dto, access_code, created_by: agentId });
     client.code_expires_at = this.getExpiryDate();
 
     const saved = await this.clientRepo.save(client);
     await this.sendCode(saved, dto.send_via);
 
     return {
-      message:
-        dto.send_via === 1
-          ? "Client créé et code d'accès envoyé par email"
-          : "Client créé et code d'accès envoyé par SMS",
+      message: dto.send_via === 1
+        ? t('clients.created_email', lang)
+        : t('clients.created_sms', lang),
       data: {
         id: saved.id,
         first_name: saved.first_name,
@@ -215,52 +178,47 @@ private generateAccessCode(): string {
       },
     };
   }
-    async getClients(agentId: number) {
-      const clients = await this.clientRepo
-        .createQueryBuilder('client')
-        .leftJoinAndSelect(
-          'client.kycRecord',
-          'kyc',
-          'kyc.deleted_at IS NOT NULL OR kyc.deleted_at IS NULL',
-        )
-        .withDeleted()
-        .where('client.created_by = :agentId', { agentId })
-        .orderBy('client.created_at', 'DESC')
-        .select([
-          'client.id',
-          'client.first_name',
-          'client.last_name',
-          'client.email',
-          'client.phone',
-          'client.access_code',
-          'client.is_code_used',
-          'client.created_at',
-          'client.created_by',
-          // KYC fields
-          'kyc.id',
-          'kyc.status',
-          'kyc.deleted_at', 
-          'kyc.cinData',
-          'kyc.cinImageUrl',
-          'kyc.selfieImageUrl',
-          'kyc.facialMatchingScore',
-          'kyc.createdAt',
-        ])
-        .getMany();
 
-      return clients.map((client) => {
-        const kyc = client.kycRecord ?? null;
+  // ─── Get clients ──────────────────────────────────────────────────────────────
 
-        // ✅ If KYC exists but is soft-deleted, force status to non_valide
-        const kycWithStatus = kyc
-          ? { ...kyc, status: kyc.deletedAt ? 'non_valide' : kyc.status }
-          : null;
+  async getClients(agentId: number) {
+    const clients = await this.clientRepo
+      .createQueryBuilder('client')
+      .leftJoinAndSelect(
+        'client.kycRecord',
+        'kyc',
+        'kyc.deleted_at IS NOT NULL OR kyc.deleted_at IS NULL',
+      )
+      .withDeleted()
+      .where('client.created_by = :agentId', { agentId })
+      .orderBy('client.created_at', 'DESC')
+      .select([
+        'client.id',
+        'client.first_name',
+        'client.last_name',
+        'client.email',
+        'client.phone',
+        'client.access_code',
+        'client.is_code_used',
+        'client.created_at',
+        'client.created_by',
+        'kyc.id',
+        'kyc.status',
+        'kyc.deleted_at',
+        'kyc.cinData',
+        'kyc.cinImageUrl',
+        'kyc.selfieImageUrl',
+        'kyc.facialMatchingScore',
+        'kyc.createdAt',
+      ])
+      .getMany();
 
-        return {
-          ...client,
-          has_kyc: !!kyc,
-          kyc: kycWithStatus,
-        };
-      });
-    }
+    return clients.map((client) => {
+      const kyc = client.kycRecord ?? null;
+      const kycWithStatus = kyc
+        ? { ...kyc, status: kyc.deletedAt ? 'non_valide' : kyc.status }
+        : null;
+      return { ...client, has_kyc: !!kyc, kyc: kycWithStatus };
+    });
+  }
 }
